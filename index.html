@@ -3,19 +3,360 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CYBERSTORM: PROTOCOL 0 - Complete 3D Sci-Fi Combat Experience</title>
+  <title>CYBERSTORM: PROTOCOL 0 - Advanced Agentic Combat Simulation</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Base Game Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  
+  <style>
+    /* =========================================================================
+       CYBERSTORM 3D FPS - UNIFIED UI ARCHITECTURE & DYNAMIC THEME SYSTEM
+       ========================================================================= */
+    :root {
+      --global-font: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --mono-font: 'Share Tech Mono', monospace;
+      --cyber-font: 'Orbitron', sans-serif;
+      
+      /* Theme System Tokens (Dynamically updated by ThemeManager) */
+      --primary: #00f0ff;
+      --primary-glow: rgba(0, 240, 255, 0.6);
+      --primary-dim: rgba(0, 240, 255, 0.25);
+      --secondary: #ffb700;
+      --secondary-glow: rgba(255, 183, 0, 0.6);
+      --danger: #ff0055;
+      --danger-glow: rgba(255, 0, 85, 0.65);
+      --success: #00ff88;
+      --panel-bg: rgba(6, 14, 26, 0.88);
+      --panel-border: 1px solid rgba(0, 240, 255, 0.35);
+      --font-accent: #00f0ff;
+      --hud-dim-opacity: 0.3;
+    }
+
+    body, html {
+      font-family: var(--global-font);
+      background-color: #03070d;
+      color: #fff;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    /* -------------------------------------------------------------------------
+       STRICT 4-ZONE HUD LAYOUT ARCHITECTURE
+       ------------------------------------------------------------------------- */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 20;
+      display: none;
+    }
+
+    /* Top-Left: Player Vitals, Sector & Wave Telemetry */
+    .hud-anchor-top-left {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 30;
+      pointer-events: auto;
+      max-width: 320px;
+    }
+
+    /* Top-Right: Minimap Radar, Sector Tracker & Persistent System Tools */
+    .hud-anchor-top-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      z-index: 35;
+      pointer-events: auto;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Top-Center Contextual Zone: POV Switcher & Apex Boss Bar */
+    .hud-anchor-top-center {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 40;
+      pointer-events: auto;
+    }
+
+    /* Bottom-Left: Abilities, Stims, Weapon Tabs & Score */
+    .hud-anchor-bottom-left {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 300px;
+      z-index: 30;
+      pointer-events: auto;
+    }
+
+    /* Bottom-Right: Active Weapon Ammo Readout, Fire Mode & Reload Meter */
+    .hud-anchor-bottom-right {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      z-index: 30;
+      pointer-events: auto;
+      text-align: right;
+    }
+
+    /* Hide legacy containers */
+    .hud-top-bar, .bottom-left, .bottom-right {
+      display: none !important;
+    }
+
+    /* -------------------------------------------------------------------------
+       COMBAT DIMMING RULE (Reduces non-critical HUD opacity to 30% under fire)
+       ------------------------------------------------------------------------- */
+    .combat-dimmable {
+      transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .combat-dimmed {
+      opacity: var(--hud-dim-opacity) !important;
+      pointer-events: none !important;
+    }
+
+    /* -------------------------------------------------------------------------
+       TWO-STATE PERSPECTIVE (FPP/TPP) SWITCHER WIDGET
+       ------------------------------------------------------------------------- */
+    .pov-switcher-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel-bg);
+      border: var(--panel-border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      color: var(--primary);
+      font-family: var(--cyber-font);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .pov-switcher-widget:hover {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .pov-icon-svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* -------------------------------------------------------------------------
+       MINIMAP / RADAR STYLING
+       ------------------------------------------------------------------------- */
+    .radar-frame {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: rgba(3, 8, 16, 0.9);
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 16px var(--primary-dim);
+      overflow: hidden;
+      position: relative;
+    }
+    #radar-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* -------------------------------------------------------------------------
+       SMART AIM LOCK-ON RETICLE ARCHETYPES
+       ------------------------------------------------------------------------- */
+    #reticle-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+      z-index: 15;
+    }
+    .reticle-aim-assist {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 40px;
+      height: 40px;
+      border: 2px dashed var(--secondary);
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(1.3);
+      transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    .reticle-aim-assist.locked {
+      opacity: 1;
+      transform: scale(1.0);
+    }
+    /* Distinct Lock-On Reticle Shapes per Enemy Category */
+    .reticle-aim-assist.lock-circle {
+      border-radius: 50%;
+      border-color: #00f0ff;
+    }
+    .reticle-aim-assist.lock-hex {
+      border-radius: 0;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      border-color: #ff0055;
+      background: rgba(255, 0, 85, 0.15);
+    }
+    .reticle-aim-assist.lock-diamond {
+      border-radius: 0;
+      transform: rotate(45deg) scale(0.9);
+      border-color: #ff00cc;
+      background: rgba(255, 0, 204, 0.15);
+    }
+    .reticle-aim-assist.lock-pip {
+      border-radius: 3px;
+      border-color: #ffb700;
+    }
+
+    /* -------------------------------------------------------------------------
+       DEDUPLICATED CANONICAL BUTTONS & MODAL PRESENTATION
+       ------------------------------------------------------------------------- */
+    .canonical-action-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .canonical-btn {
+      padding: 12px 28px;
+      font-family: var(--cyber-font);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: var(--panel-bg);
+      border: var(--panel-border);
+      color: var(--primary);
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .canonical-btn:hover {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px var(--primary-glow);
+    }
+    .canonical-btn.main-action {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      box-shadow: 0 0 25px var(--primary-glow);
+    }
+    .canonical-btn.main-action:hover {
+      background: #fff;
+      box-shadow: 0 0 35px #fff;
+    }
+    .canonical-btn.danger-action {
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    .canonical-btn.danger-action:hover {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 0 25px var(--danger-glow);
+    }
+    .canonical-btn.ghost-action {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ccc;
+    }
+    .canonical-btn.ghost-action:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* -------------------------------------------------------------------------
+       RESPONSIVE MOBILE SAFE AREAS & TOUCH CONTROLS
+       ------------------------------------------------------------------------- */
+    @media (max-width: 860px) {
+      .hud-anchor-top-left, .hud-anchor-top-right, .hud-anchor-bottom-left, .hud-anchor-bottom-right {
+        transform: scale(0.85);
+        transform-origin: top left;
+      }
+      .hud-anchor-top-right {
+        transform-origin: top right;
+      }
+      .hud-anchor-bottom-left {
+        transform-origin: bottom left;
+        bottom: 120px;
+        left: 10px;
+      }
+      .hud-anchor-bottom-right {
+        transform-origin: bottom right;
+        bottom: 120px;
+        right: 10px;
+      }
+      .pov-switcher-widget {
+        padding: 8px 12px;
+      }
+      .btn-touch, .btn-touch-sm, .btn-touch-pill {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    }
+  </style>
+
+  <!-- Three.js 3D WebGL Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-  <!-- WebGL 3D Render Canvas -->
+  <!-- WebGL 3D Game Canvas -->
   <canvas id="webgl-canvas"></canvas>
 
-  <!-- Interactive Loading Screen & Initialization Sequence -->
+  <!-- Interactive Loading Screen Sequence -->
   <div id="loading-screen">
     <div class="loading-content">
       <div class="loading-logo">
@@ -31,124 +372,34 @@
       </div>
       <div class="loading-status-text" id="loading-status-msg">INITIALIZING QUANTUM SHADERS...</div>
       
-      <div class="loading-tips" id="loading-tip-msg">TIP: Switch between First-Person (FPP) and Third-Person (TPP) using [V] or the POV button!</div>
+      <div class="loading-tips" id="loading-tip-msg">TIP: Switch between First-Person (FPP) and Third-Person (TPP) seamlessly using [V] or the POV trigger!</div>
       
-      <button class="btn-cyber btn-primary-glow hidden" id="btn-enter-game">ENTER WARZONE</button>
+      <button class="canonical-btn main-action hidden" id="btn-enter-game" style="margin-top:20px;">ESTABLISH UPLINK</button>
     </div>
   </div>
 
-  <!-- Visual Overlays (Scanlines, CRT Vignette, Damage Flash, Powerup Glow, Healing Flare) -->
+  <!-- Fullscreen Visual Atmospheric Overlays -->
   <div class="scanlines" id="scanlines-fx"></div>
   <div id="damage-overlay"></div>
   <div id="powerup-overlay"></div>
   <div id="heal-overlay"></div>
 
-  <!-- Floating 3D Damage Numbers Layer -->
+  <!-- Floating Damage Feedback Layer -->
   <div id="damage-numbers-layer"></div>
 
-  <!-- In-Game HUD Layer -->
+  <!-- =========================================================================
+       REORGANIZED 4-ZONE COMBAT HUD
+       ========================================================================= -->
   <div id="hud">
-    <!-- Top Bar Navigation & Controls -->
-    <div class="hud-top-bar">
-      <!-- Top Left: Score, Streak & Sector -->
-      <div class="hud-group top-left">
-        <div class="sci-box score-box">
-          <div class="sci-label">Combat Score</div>
-          <div class="score-value" id="hud-score">000000</div>
-        </div>
-        <div class="combo-badge" id="hud-combo">
-          <span id="combo-text">2X STREAK</span>
-          <div class="combo-meter"><div class="combo-fill" id="combo-fill"></div></div>
-        </div>
+    <!-- ZONE 1: TOP-LEFT (Vitals, Wave, Sector & Active Buff Tray) -->
+    <div class="hud-anchor-top-left">
+      <div class="sci-box level-badge" style="display:inline-flex; align-items:center; gap:8px;">
+        <span class="sector-tag" id="hud-sector">SECTOR 01</span>
+        <span style="color:rgba(255,255,255,0.3);">|</span>
+        <span class="wave-tag" id="hud-wave">WAVE 01</span>
       </div>
 
-      <!-- Top Center: Sector/Level Info & Wave Counter -->
-      <div class="hud-group top-center">
-        <div class="sci-box level-badge">
-          <span class="sector-tag" id="hud-sector">SECTOR 01</span>
-          <span class="wave-tag" id="hud-wave">WAVE 01</span>
-        </div>
-        <div class="threats-tracker">
-          THREATS: <span class="threats-count" id="hud-enemies">0</span>
-        </div>
-      </div>
-
-      <!-- Top Right: Quick Actions, Camera Mode, Radar & Settings -->
-      <div class="hud-group top-right">
-        <div class="hud-quick-actions">
-          <button class="hud-icon-btn" id="hud-btn-pov" title="Toggle FPP / TPP Perspective (V)">
-            <span id="pov-indicator-text">FPP</span>
-          </button>
-          <button class="hud-icon-btn" id="hud-btn-fullscreen" title="Toggle Fullscreen">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-          </button>
-          <button class="hud-icon-btn" id="hud-btn-music" title="Toggle Music">
-            <svg id="icon-music-on" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-            <svg id="icon-music-off" class="hidden" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.27 3L3 4.27l9 9v.28c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-1.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-          </button>
-          <button class="hud-icon-btn" id="hud-btn-audio" title="Toggle SFX">
-            <svg id="icon-sound-on" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-          </button>
-          <button class="hud-icon-btn" id="hud-btn-pause" title="Pause / Menu (ESC)">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
-        </div>
-        <div class="radar-container">
-          <canvas id="radar-canvas" width="100" height="100"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Boss Health Bar Container -->
-    <div id="boss-hud-container" class="hidden">
-      <div class="boss-title-row">
-        <span class="boss-name" id="boss-name-label">CYBER TITAN: MECH-X</span>
-        <span class="boss-pct" id="boss-pct-label">100%</span>
-      </div>
-      <div class="boss-gauge-frame">
-        <div class="boss-gauge-ghost" id="boss-gauge-ghost"></div>
-        <div class="boss-gauge-fill" id="boss-gauge-fill"></div>
-      </div>
-    </div>
-
-    <!-- Wave Announcement Banner -->
-    <div id="wave-banner">WAVE 01 INCOMING</div>
-
-    <!-- Active Power-up Buff Indicators -->
-    <div id="buff-tray">
-      <div class="buff-chip hidden" id="buff-quad">
-        <span class="buff-icon">⚔️</span>
-        <span class="buff-name">QUAD DMG</span>
-        <span class="buff-timer" id="buff-quad-timer">10s</span>
-      </div>
-      <div class="buff-chip hidden" id="buff-speed">
-        <span class="buff-icon">⚡</span>
-        <span class="buff-name">OVERDRIVE</span>
-        <span class="buff-timer" id="buff-speed-timer">10s</span>
-      </div>
-      <div class="buff-chip hidden" id="buff-shield">
-        <span class="buff-icon">🛡️</span>
-        <span class="buff-name">OVERSHIELD</span>
-        <span class="buff-timer" id="buff-shield-timer">10s</span>
-      </div>
-    </div>
-
-    <!-- Aim Assist Lock-on Ring & Crosshair -->
-    <div id="reticle-container" class="style-cross">
-      <div class="reticle-tick top"></div>
-      <div class="reticle-tick bottom"></div>
-      <div class="reticle-tick left"></div>
-      <div class="reticle-tick right"></div>
-      <div class="reticle-ring"></div>
-      <div class="reticle-aim-assist" id="reticle-aim-lock"></div>
-      <div class="reticle-dot"></div>
-    </div>
-    <div id="hitmarker"></div>
-
-    <!-- Bottom Left: Shields, Health, Stim Consumable & Weapon Dock -->
-    <div class="hud-group bottom-left">
-      <div class="status-gauge-block">
+      <div class="status-gauge-block" style="margin-top:4px;">
         <div class="status-meta-row">
           <span class="meta-label">ENERGY SHIELD</span>
           <span class="meta-val" id="shield-val">100%</span>
@@ -170,45 +421,110 @@
         </div>
       </div>
 
-      <!-- Consumable Stim Pack Quick Launcher -->
-      <div class="stim-launcher-row">
-        <button class="btn-stim-hud" id="hud-btn-stim" title="Use Nano-Stim Medkit (H / Q)">
-          <span class="stim-icon">💉</span>
-          <span class="stim-name">NANO-STIM</span>
-          <span class="stim-badge" id="hud-stim-count">3</span>
-        </button>
-        <button class="btn-firemode-hud" id="hud-btn-firemode" title="Toggle Fire Mode (B)">
-          <span class="firemode-label">FIRE MODE</span>
-          <span class="firemode-val" id="hud-firemode-text">AUTO</span>
-        </button>
+      <div class="threats-tracker" style="text-align: left; margin-top:2px;">
+        HOSTILE THREATS: <span class="threats-count" id="hud-enemies" style="font-size:14px; text-shadow:0 0 8px var(--secondary);">0</span>
       </div>
 
-      <!-- Quick Weapon Switcher (Desktop 1-4 & Clickable) -->
-      <div class="weapon-arsenal-dock" id="arsenal-dock">
-        <button class="weapon-tab active" data-weapon="0" id="wep-tab-0">
-          <span class="wep-key">1</span>
-          <span class="wep-title">PLASMA</span>
+      <!-- Active Powerup Buff Chips -->
+      <div id="buff-tray" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+        <div class="buff-chip hidden" id="buff-quad">
+          <span class="buff-icon">⚔️</span><span class="buff-name">QUAD DMG</span><span class="buff-timer" id="buff-quad-timer">10s</span>
+        </div>
+        <div class="buff-chip hidden" id="buff-speed">
+          <span class="buff-icon">⚡</span><span class="buff-name">OVERDRIVE</span><span class="buff-timer" id="buff-speed-timer">10s</span>
+        </div>
+        <div class="buff-chip hidden" id="buff-shield">
+          <span class="buff-icon">🛡️</span><span class="buff-name">OVERSHIELD</span><span class="buff-timer" id="buff-shield-timer">10s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE 2: TOP-RIGHT (Radar Minimap, Theme Tracker & Unified Controls) -->
+    <div class="hud-anchor-top-right combat-dimmable" id="hud-top-right-zone">
+      <div class="radar-frame">
+        <canvas id="radar-canvas" width="104" height="104"></canvas>
+      </div>
+
+      <!-- Persistent Quick Utilities Bar -->
+      <div class="hud-quick-actions">
+        <button class="hud-icon-btn" id="hud-btn-fullscreen" title="Toggle Fullscreen">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
         </button>
-        <button class="weapon-tab" data-weapon="1" id="wep-tab-1">
-          <span class="wep-key">2</span>
-          <span class="wep-title">SHOTGUN</span>
+        <button class="hud-icon-btn" id="hud-btn-music" title="Toggle Synth Music">
+          <svg id="icon-music-on" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          <svg id="icon-music-off" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.27 3L3 4.27l9 9v.28c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-1.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
         </button>
-        <button class="weapon-tab" data-weapon="2" id="wep-tab-2">
-          <span class="wep-key">3</span>
-          <span class="wep-title">RAILGUN</span>
+        <button class="hud-icon-btn" id="hud-btn-audio" title="Toggle Master Audio">
+          <svg id="icon-sound-on" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
         </button>
-        <button class="weapon-tab" data-weapon="3" id="wep-tab-3">
-          <span class="wep-key">4</span>
-          <span class="wep-title">ROCKET</span>
+        <button class="hud-icon-btn" id="hud-btn-pause" title="Tactical Pause (ESC / P)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- Bottom Right: Ammo & Weapon Readout -->
-    <div class="hud-group bottom-right">
+    <!-- ZONE 3: TOP-CENTER CONTEXTUAL (Perspective Switcher, Boss Gauge & Wave Banner) -->
+    <div class="hud-anchor-top-center">
+      <!-- FPP / TPP Single Two-State Switcher -->
+      <button class="pov-switcher-widget combat-dimmable" id="hud-btn-pov" title="Toggle Perspective (V)">
+        <svg class="pov-icon-svg" id="pov-icon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+        <span>POV // <span id="pov-indicator-text">FPP</span></span>
+      </button>
+
+      <!-- Apex Titan Boss Gauge Frame -->
+      <div id="boss-hud-container" class="hidden">
+        <div class="boss-title-row">
+          <span class="boss-name" id="boss-name-label">CYBER TITAN: MECH-X</span>
+          <span class="boss-pct" id="boss-pct-label">100%</span>
+        </div>
+        <div class="boss-gauge-frame">
+          <div class="boss-gauge-ghost" id="boss-gauge-ghost"></div>
+          <div class="boss-gauge-fill" id="boss-gauge-fill"></div>
+        </div>
+      </div>
+
+      <!-- Wave Announcement Banner -->
+      <div id="wave-banner">WAVE 01 INCOMING</div>
+    </div>
+
+    <!-- ZONE 4: BOTTOM-LEFT (Stim, Fire Mode, Weapon Dock & Score) -->
+    <div class="hud-anchor-bottom-left">
+      <div class="stim-launcher-row">
+        <button class="btn-stim-hud" id="hud-btn-stim" title="Nano-Stim Medkit (H / Q)">
+          <span class="stim-icon">💉</span>
+          <span class="stim-name">NANO-STIM</span>
+          <span class="stim-badge" id="hud-stim-count">3</span>
+        </button>
+        <button class="btn-firemode-hud" id="hud-btn-firemode" title="Cycle Fire Mode (B)">
+          <span class="firemode-label">MODE</span>
+          <span class="firemode-val" id="hud-firemode-text">AUTO</span>
+        </button>
+      </div>
+
+      <!-- Arsenal Dock Tabs -->
+      <div class="weapon-arsenal-dock" id="arsenal-dock">
+        <button class="weapon-tab active" data-weapon="0" id="wep-tab-0"><span class="wep-key">1</span><span class="wep-title">PLASMA</span></button>
+        <button class="weapon-tab" data-weapon="1" id="wep-tab-1"><span class="wep-key">2</span><span class="wep-title">ST-8</span></button>
+        <button class="weapon-tab" data-weapon="2" id="wep-tab-2"><span class="wep-key">3</span><span class="wep-title">RAIL</span></button>
+        <button class="weapon-tab" data-weapon="3" id="wep-tab-3"><span class="wep-key">4</span><span class="wep-title">VOID</span></button>
+      </div>
+
+      <div class="sci-box score-box" style="margin-top:4px;">
+        <div class="sci-label">COMBAT SCORE</div>
+        <div class="score-value" id="hud-score">000000</div>
+        <div class="combo-badge" id="hud-combo">
+          <span id="combo-text">2X STREAK</span>
+          <div class="combo-meter"><div class="combo-fill" id="combo-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE 5: BOTTOM-RIGHT (Weapon Ammo, Reload & Fire Mode) -->
+    <div class="hud-anchor-bottom-right">
       <div class="weapon-info-tag" id="weapon-name-display">PLASMA CARBINE V4</div>
       <div class="ammo-readout-row">
-        <span class="ammo-active-count" id="ammo-clip">28</span>
+        <span class="ammo-active-count" id="ammo-clip">30</span>
         <span class="ammo-divider">/</span>
         <span class="ammo-reserve-count" id="ammo-reserve">&infin;</span>
       </div>
@@ -217,25 +533,32 @@
         <div class="reload-meter-fill" id="reload-fill"></div>
       </div>
     </div>
+
+    <!-- Reticle, Lock-on Rings & Hitmarkers -->
+    <div id="reticle-container" class="style-cross">
+      <div class="reticle-tick top"></div>
+      <div class="reticle-tick bottom"></div>
+      <div class="reticle-tick left"></div>
+      <div class="reticle-tick right"></div>
+      <div class="reticle-ring"></div>
+      <div class="reticle-aim-assist" id="reticle-aim-lock"></div>
+      <div class="reticle-dot"></div>
+    </div>
+    <div id="hitmarker"></div>
   </div>
 
-  <!-- Mobile Touch Controls Overlay (Non-Overlapping Layout) -->
+  <!-- Mobile Touch Controls Layer -->
   <div id="mobile-controls">
-    <!-- Left Virtual Joystick Zone -->
     <div class="touch-zone-left" id="touch-joystick-zone">
-      <div class="joystick-base">
-        <div class="joystick-knob" id="joystick-knob"></div>
-      </div>
+      <div class="joystick-base"><div class="joystick-knob" id="joystick-knob"></div></div>
     </div>
 
-    <!-- Top Touch Utilities (POV, Fire Mode, Stim) -->
     <div class="touch-top-row">
       <button class="btn-touch-pill" id="btn-touch-pov">POV: FPP</button>
       <button class="btn-touch-pill" id="btn-touch-mode">AUTO</button>
       <button class="btn-touch-pill btn-touch-heal" id="btn-touch-stim">💉 STIM (3)</button>
     </div>
 
-    <!-- Right Action Buttons Cluster -->
     <div class="touch-action-cluster">
       <div class="touch-row-top">
         <button class="btn-touch-sm" id="btn-touch-wep-prev" title="Prev Weapon">◄</button>
@@ -250,350 +573,619 @@
     </div>
   </div>
 
-  <!-- Start Screen Modal -->
+  <!-- =========================================================================
+       MODAL DIALOGS (DEDUPLICATED SINGLE-SOURCE BUTTON SYSTEM)
+       ========================================================================= -->
+
+  <!-- START MENU MODAL -->
   <div class="modal-screen" id="start-screen">
     <div class="modal-dialog start-dialog">
       <h1 class="hero-brand">CYBERSTORM</h1>
-      <p class="hero-tagline">// PROTOCOL 0 : COMPLETE 3D COMBAT EXPERIENCE //</p>
+      <p class="hero-tagline">// PROTOCOL 0 : COMBAT SIMULATION ENGINE //</p>
 
-      <!-- Difficulty Selection Bar -->
-      <div class="form-section-title">COMBAT DIFFICULTY</div>
+      <div class="form-section-title">ENGAGEMENT COMPLEXITY</div>
       <div class="difficulty-toggle-group" id="start-diff-selector">
-        <button class="diff-btn" data-diff="easy">RECRUIT (EASY)</button>
-        <button class="diff-btn active" data-diff="medium">SOLDIER (MED)</button>
-        <button class="diff-btn" data-diff="hard">VETERAN (HARD)</button>
+        <button class="diff-btn" data-diff="easy">RECRUIT</button>
+        <button class="diff-btn active" data-diff="medium">SOLDIER</button>
+        <button class="diff-btn" data-diff="hard">VETERAN</button>
         <button class="diff-btn nightmare" data-diff="nightmare">NIGHTMARE</button>
       </div>
 
-      <!-- Controls Guide Grid -->
       <div class="controls-guide-grid">
         <div class="guide-panel">
-          <div class="guide-header">DESKTOP CONTROLS</div>
+          <div class="guide-header">DESKTOP MAPPING</div>
           <div class="guide-row"><span>Move / Strafe</span><span class="k-cap">W A S D</span></div>
           <div class="guide-row"><span>Aim / Look</span><span class="k-cap">MOUSE</span></div>
           <div class="guide-row"><span>Fire Weapon</span><span class="k-cap">L-CLICK</span></div>
-          <div class="guide-row"><span>Toggle FPP / TPP</span><span class="k-cap">V</span></div>
-          <div class="guide-row"><span>Use Nano-Stim</span><span class="k-cap">H / Q</span></div>
-          <div class="guide-row"><span>Fire Mode (Auto/Burst/Semi)</span><span class="k-cap">B</span></div>
-          <div class="guide-row"><span>Jump / Dash / Reload</span><span class="k-cap">SPACE / SHIFT / R</span></div>
-          <div class="guide-row"><span>Switch Weapons</span><span class="k-cap">1-4 / WHEEL</span></div>
+          <div class="guide-row"><span>Camera Mode</span><span class="k-cap">V</span></div>
+          <div class="guide-row"><span>Nano-Stim</span><span class="k-cap">H / Q</span></div>
+          <div class="guide-row"><span>Fire Mode</span><span class="k-cap">B</span></div>
         </div>
         <div class="guide-panel">
-          <div class="guide-header">MOBILE / TOUCH</div>
-          <div class="guide-row"><span>Move (Left Thumb)</span><span class="k-cap">JOYSTICK</span></div>
-          <div class="guide-row"><span>Look (Right Thumb)</span><span class="k-cap">DRAG SCREEN</span></div>
-          <div class="guide-row"><span>Fire Weapon</span><span class="k-cap">FIRE BUTTON</span></div>
-          <div class="guide-row"><span>FPP / TPP Switch</span><span class="k-cap">POV BUTTON</span></div>
-          <div class="guide-row"><span>Use Nano-Stim</span><span class="k-cap">STIM BUTTON</span></div>
-          <div class="guide-row"><span>50% Auto-Aim</span><span class="k-cap">ENABLED</span></div>
-          <div class="guide-row"><span>Weapon Cycle</span><span class="k-cap">◄ ► BUTTONS</span></div>
+          <div class="guide-header">MOBILE MAPPING</div>
+          <div class="guide-row"><span>Movement</span><span class="k-cap">JOYSTICK</span></div>
+          <div class="guide-row"><span>Look Area</span><span class="k-cap">DRAG RIGHT</span></div>
+          <div class="guide-row"><span>Fire Output</span><span class="k-cap">FIRE BTN</span></div>
+          <div class="guide-row"><span>Camera Mode</span><span class="k-cap">POV BTN</span></div>
+          <div class="guide-row"><span>Nano-Stim</span><span class="k-cap">STIM BTN</span></div>
+          <div class="guide-row"><span>Smart Aim</span><span class="k-cap">AUTOMATIC</span></div>
         </div>
       </div>
 
-      <div class="modal-cta-row">
-        <button class="btn-cyber btn-primary-glow" id="btn-start">DEPLOY WARZONE (FULLSCREEN)</button>
-        <button class="btn-cyber btn-secondary-ghost" id="btn-open-settings-main">SETTINGS</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Settings Modal (Form & Adjustment Options) -->
-  <div class="modal-screen hidden" id="settings-modal">
-    <div class="modal-dialog settings-dialog">
-      <div class="settings-header">
-        <h2>SYSTEM CONFIGURATION</h2>
-        <button class="modal-close-btn" id="btn-close-settings">&times;</button>
-      </div>
-
-      <!-- Settings Tabs -->
-      <div class="settings-tabs-nav">
-        <button class="tab-btn active" data-tab="tab-gameplay">GAMEPLAY</button>
-        <button class="tab-btn" data-tab="tab-controls">CONTROLS & AIM</button>
-        <button class="tab-btn" data-tab="tab-graphics">GRAPHICS</button>
-        <button class="tab-btn" data-tab="tab-audio">AUDIO & MUSIC</button>
-        <button class="tab-btn" data-tab="tab-hud">HUD & TOUCH</button>
-      </div>
-
-      <!-- Tab Content: Gameplay -->
-      <div class="tab-page active" id="tab-gameplay">
-        <div class="form-row">
-          <label class="form-label" for="setting-difficulty">Combat Difficulty</label>
-          <select class="form-select" id="setting-difficulty">
-            <option value="easy">Recruit (Easy - 150HP, Fast Shields, Generous Ammo)</option>
-            <option value="medium" selected>Soldier (Medium - Balanced Combat Experience)</option>
-            <option value="hard">Veteran (Hard - 80HP, Lethal Threat Swarms)</option>
-            <option value="nightmare">Nightmare (Ultra - 60HP, High Aggression)</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="setting-default-pov">Default Camera Perspective</label>
-          <select class="form-select" id="setting-default-pov">
-            <option value="FPP" selected>First-Person Perspective (FPP)</option>
-            <option value="TPP">Third-Person Perspective (TPP)</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="setting-default-firemode">Default Weapon Fire Mode</label>
-          <select class="form-select" id="setting-default-firemode">
-            <option value="AUTO" selected>Full Automatic (Continuous Fire)</option>
-            <option value="BURST">3-Round Burst (High Precision)</option>
-            <option value="SEMI">Semi-Automatic (Single Discharge)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Tab Content: Controls & Aim Assist -->
-      <div class="tab-page" id="tab-controls">
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-aim-assist">Smart Auto-Aim Assist Strength</label>
-            <span class="form-val-bubble" id="val-aim-assist">50%</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-aim-assist" min="0" max="100" step="5" value="50">
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-sensitivity-x">Horizontal (X-Axis) Look Sensitivity</label>
-            <span class="form-val-bubble" id="val-sensitivity-x">1.0x</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-sensitivity-x" min="0.3" max="3.0" step="0.1" value="1.0">
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-sensitivity-y">Vertical (Y-Axis) Look Sensitivity</label>
-            <span class="form-val-bubble" id="val-sensitivity-y">1.0x</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-sensitivity-y" min="0.3" max="3.0" step="0.1" value="1.0">
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-invert-y">Invert Vertical Look (Y-Axis)</label>
-          <input type="checkbox" class="form-checkbox" id="setting-invert-y">
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-haptic">Mobile Haptic Vibration Feedback</label>
-          <input type="checkbox" class="form-checkbox" id="setting-haptic" checked>
-        </div>
-      </div>
-
-      <!-- Tab Content: Graphics -->
-      <div class="tab-page" id="tab-graphics">
-        <div class="form-row">
-          <label class="form-label" for="setting-graphics-preset">Graphics Performance Preset</label>
-          <select class="form-select" id="setting-graphics-preset">
-            <option value="high" selected>High (PCF Soft Shadows, High-DPI, Full Particles)</option>
-            <option value="medium">Medium (Standard Lighting, Balanced 60FPS)</option>
-            <option value="low">Low / Mobile Performance (Max Smoothness, No Shadows)</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-fov">Field of View (FOV)</label>
-            <span class="form-val-bubble" id="val-fov">75°</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-fov" min="60" max="105" step="1" value="75">
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-scanlines">CRT Scanlines & Cyber Atmosphere</label>
-          <input type="checkbox" class="form-checkbox" id="setting-scanlines" checked>
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-particles">Environmental Sparks & Dust Particles</label>
-          <input type="checkbox" class="form-checkbox" id="setting-particles" checked>
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-damage-nums">Floating 3D Damage Numbers</label>
-          <input type="checkbox" class="form-checkbox" id="setting-damage-nums" checked>
-        </div>
-      </div>
-
-      <!-- Tab Content: Audio & Music -->
-      <div class="tab-page" id="tab-audio">
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-audio-enable">Master Audio Engine</label>
-          <input type="checkbox" class="form-checkbox" id="setting-audio-enable" checked>
-        </div>
-
-        <div class="form-row toggle-row">
-          <label class="form-label" for="setting-music-enable">Dynamic Cyberpunk Background Music</label>
-          <input type="checkbox" class="form-checkbox" id="setting-music-enable" checked>
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-music-vol">Music Volume</label>
-            <span class="form-val-bubble" id="val-music-vol">70%</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-music-vol" min="0" max="100" step="5" value="70">
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-sfx-vol">Sound Effects (SFX) Volume</label>
-            <span class="form-val-bubble" id="val-sfx-vol">90%</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-sfx-vol" min="0" max="100" step="5" value="90">
-        </div>
-      </div>
-
-      <!-- Tab Content: HUD & Touch -->
-      <div class="tab-page" id="tab-hud">
-        <div class="form-row">
-          <label class="form-label" for="setting-touch-layout">Mobile Touch Controls Layout</label>
-          <select class="form-select" id="setting-touch-layout">
-            <option value="layout-standard" selected>Standard (Ergonomic Spread)</option>
-            <option value="layout-compact">Compact (Close Grouping)</option>
-            <option value="layout-wide">Wide Screen (Corner Anchored)</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-touch-scale">Touch Buttons Scale</label>
-            <span class="form-val-bubble" id="val-touch-scale">100%</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-touch-scale" min="70" max="140" step="5" value="100">
-        </div>
-
-        <div class="form-row">
-          <div class="label-with-value">
-            <label class="form-label" for="setting-touch-opacity">Touch Buttons Opacity</label>
-            <span class="form-val-bubble" id="val-touch-opacity">85%</span>
-          </div>
-          <input type="range" class="form-slider" id="setting-touch-opacity" min="30" max="100" step="5" value="85">
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="setting-reticle-style">Reticle Targeting Style</label>
-          <select class="form-select" id="setting-reticle-style">
-            <option value="style-cross" selected>Crosshair + Precision Dot</option>
-            <option value="style-ring">Ring + Precision Center</option>
-            <option value="style-dot">Minimalist Tactical Dot</option>
-            <option value="style-hex">Cyber Hexagon</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="setting-reticle-color">Reticle Neon Color</label>
-          <select class="form-select" id="setting-reticle-color">
-            <option value="#00f0ff" selected>Cyan (#00F0FF)</option>
-            <option value="#00ff66">Neon Green (#00FF66)</option>
-            <option value="#ffe600">Amber Gold (#FFE600)</option>
-            <option value="#ff0077">Laser Magenta (#FF0077)</option>
-            <option value="#ffffff">Pure White (#FFFFFF)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="settings-footer-row">
-        <button class="btn-cyber btn-primary-glow" id="btn-save-settings">APPLY & CLOSE</button>
-        <button class="btn-cyber btn-secondary-ghost" id="btn-reset-settings">RESET DEFAULTS</button>
+      <div class="canonical-action-row">
+        <button class="canonical-btn main-action" id="btn-start">DEPLOY PROTOCOL</button>
+        <button class="canonical-btn ghost-action" id="btn-open-settings-main">SYSTEM CONFIG</button>
       </div>
     </div>
   </div>
 
-  <!-- In-Game Pause Menu Modal -->
+  <!-- TACTICAL PAUSE MODAL -->
   <div class="modal-screen hidden" id="pause-modal">
     <div class="modal-dialog pause-dialog">
       <h2 class="hero-brand" style="font-size: 32px;">TACTICAL PAUSE</h2>
       <p class="hero-tagline">// COMBAT SIMULATION SUSPENDED //</p>
 
-      <div class="pause-menu-actions">
-        <button class="btn-cyber btn-primary-glow" id="btn-pause-resume">RESUME COMBAT</button>
-        <button class="btn-cyber btn-secondary-ghost" id="btn-pause-settings">SETTINGS</button>
-        <button class="btn-cyber btn-secondary-ghost" id="btn-pause-restart">RESTART SECTOR</button>
-        <button class="btn-cyber btn-danger" id="btn-pause-mainmenu">MAIN MENU</button>
+      <div class="canonical-action-row" style="flex-direction:column; width:280px;">
+        <button class="canonical-btn main-action" id="btn-pause-resume">RESUME COMBAT</button>
+        <button class="canonical-btn ghost-action" id="btn-pause-settings">SYSTEM CONFIG</button>
+        <button class="canonical-btn danger-action" id="btn-pause-restart">RESTART SECTOR</button>
+        <button class="canonical-btn ghost-action" id="btn-pause-mainmenu">MAIN MENU</button>
       </div>
     </div>
   </div>
 
-  <!-- Sector / Level Cleared Modal -->
+  <!-- SECTOR SECURED / LEVEL CLEAR MODAL -->
   <div class="modal-screen hidden" id="level-clear-modal">
     <div class="modal-dialog level-dialog">
       <h2 class="hero-brand" style="color: #00ff88; text-shadow: 0 0 25px #00ff88;">SECTOR SECURED</h2>
       <p class="hero-tagline" id="level-clear-subtitle">// TRANSITIONING TO NEXT WARZONE //</p>
 
       <div class="stats-card">
-        <div class="stat-col">
-          <span class="stat-lbl">Sector Cleared</span>
-          <span class="stat-val highlight" id="lvl-stat-sector">Sector 01</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Clearance Bonus</span>
-          <span class="stat-val highlight" id="lvl-stat-bonus">+5,000 PTS</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Total Score</span>
-          <span class="stat-val" id="lvl-stat-score">000000</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Hull Integrity</span>
-          <span class="stat-val" id="lvl-stat-hull">100%</span>
-        </div>
+        <div class="stat-col"><span class="stat-lbl">Sector Cleared</span><span class="stat-val highlight" id="lvl-stat-sector">Sector 01</span></div>
+        <div class="stat-col"><span class="stat-lbl">Clearance Bonus</span><span class="stat-val highlight" id="lvl-stat-bonus">+5,000 PTS</span></div>
+        <div class="stat-col"><span class="stat-lbl">Total Score</span><span class="stat-val" id="lvl-stat-score">000000</span></div>
+        <div class="stat-col"><span class="stat-lbl">Hull Integrity</span><span class="stat-val" id="lvl-stat-hull">100%</span></div>
       </div>
 
-      <button class="btn-cyber btn-primary-glow" id="btn-next-level">ENGAGE NEXT SECTOR</button>
+      <div class="canonical-action-row">
+        <button class="canonical-btn main-action" id="btn-next-level">INITIATE NEXT SECTOR</button>
+      </div>
     </div>
   </div>
 
-  <!-- Game Over Debrief Modal -->
+  <!-- SIGNAL LOST / GAME OVER MODAL -->
   <div class="modal-screen hidden" id="game-over-screen">
     <div class="modal-dialog gameover-dialog">
       <h1 class="hero-brand" style="color: var(--danger); text-shadow: 0 0 25px var(--danger);">SIGNAL LOST</h1>
       <p class="hero-tagline" style="color: #ff8fa5;">// COMBAT TELEMETRY DEBRIEF //</p>
 
       <div class="stats-card">
-        <div class="stat-col">
-          <span class="stat-lbl">Final Combat Score</span>
-          <span class="stat-val highlight" id="stat-final-score">0</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">All-Time High Score</span>
-          <span class="stat-val" id="stat-high-score">0</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Sectors Cleared</span>
-          <span class="stat-val" id="stat-sectors">0</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Waves Survived</span>
-          <span class="stat-val" id="stat-waves">0</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Threats Neutralized</span>
-          <span class="stat-val" id="stat-kills">0</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Targeting Accuracy</span>
-          <span class="stat-val" id="stat-accuracy">0%</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Combat Duration</span>
-          <span class="stat-val" id="stat-time">00:00</span>
-        </div>
-        <div class="stat-col">
-          <span class="stat-lbl">Combat Difficulty</span>
-          <span class="stat-val" id="stat-difficulty">SOLDIER</span>
-        </div>
+        <div class="stat-col"><span class="stat-lbl">Final Score</span><span class="stat-val highlight" id="stat-final-score">0</span></div>
+        <div class="stat-col"><span class="stat-lbl">All-Time High</span><span class="stat-val" id="stat-high-score">0</span></div>
+        <div class="stat-col"><span class="stat-lbl">Cleared Sectors</span><span class="stat-val" id="stat-sectors">0</span></div>
+        <div class="stat-col"><span class="stat-lbl">Waves Handled</span><span class="stat-val" id="stat-waves">0</span></div>
+        <div class="stat-col"><span class="stat-lbl">Total Neut.</span><span class="stat-val" id="stat-kills">0</span></div>
+        <div class="stat-col"><span class="stat-lbl">Gun Accuracy</span><span class="stat-val" id="stat-accuracy">0%</span></div>
+        <div class="stat-col"><span class="stat-lbl">Duration</span><span class="stat-val" id="stat-time">00:00</span></div>
+        <div class="stat-col"><span class="stat-lbl">Complexity</span><span class="stat-val" id="stat-difficulty">SOLDIER</span></div>
       </div>
 
-      <div class="modal-cta-row">
-        <button class="btn-cyber btn-danger" id="btn-restart">REDEPLOY PROTOCOL</button>
-        <button class="btn-cyber btn-secondary-ghost" id="btn-gameover-menu">MAIN MENU</button>
+      <div class="canonical-action-row">
+        <button class="canonical-btn danger-action" id="btn-restart">REDEPLOY HULL</button>
+        <button class="canonical-btn ghost-action" id="btn-gameover-menu">MAIN MENU</button>
       </div>
     </div>
   </div>
 
-  <!-- Game Engine Core -->
+  <!-- SYSTEM CONFIGURATION / SETTINGS MODAL -->
+  <div class="modal-screen hidden" id="settings-modal" style="z-index:90000;">
+    <div class="modal-dialog settings-dialog">
+      <div class="settings-header">
+        <h2>SYSTEM CONFIGURATION</h2>
+        <button class="modal-close-btn" id="btn-close-settings">&times;</button>
+      </div>
+
+      <div class="settings-tabs-nav">
+        <button class="tab-btn active" data-tab="tab-gameplay">GAMEPLAY</button>
+        <button class="tab-btn" data-tab="tab-controls">CONTROLS</button>
+        <button class="tab-btn" data-tab="tab-graphics">GRAPHICS</button>
+        <button class="tab-btn" data-tab="tab-audio">AUDIO</button>
+        <button class="tab-btn" data-tab="tab-hud">HUD & TOUCH</button>
+      </div>
+
+      <div class="tab-page active" id="tab-gameplay">
+        <div class="form-row">
+          <label class="form-label" for="setting-difficulty">Combat Difficulty</label>
+          <select class="form-select" id="setting-difficulty">
+            <option value="easy">Recruit (Easy)</option>
+            <option value="medium" selected>Soldier (Medium)</option>
+            <option value="hard">Veteran (Hard)</option>
+            <option value="nightmare">Nightmare (Ultra)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="setting-default-pov">Default Camera Perspective</label>
+          <select class="form-select" id="setting-default-pov">
+            <option value="FPP" selected>FPP (First-Person)</option>
+            <option value="TPP">TPP (Third-Person)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="setting-default-firemode">Default Weapon Fire Mode</label>
+          <select class="form-select" id="setting-default-firemode">
+            <option value="AUTO" selected>Full Automatic</option>
+            <option value="BURST">3-Round Burst</option>
+            <option value="SEMI">Semi-Automatic</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tab-page" id="tab-controls">
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Smart Auto-Aim Strength</label><span class="form-val-bubble" id="val-aim-assist">50%</span></div>
+          <input type="range" class="form-slider" id="setting-aim-assist" min="0" max="100" step="5" value="50">
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">X-Axis Sensitivity</label><span class="form-val-bubble" id="val-sensitivity-x">1.0x</span></div>
+          <input type="range" class="form-slider" id="setting-sensitivity-x" min="0.3" max="3.0" step="0.1" value="1.0">
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Y-Axis Sensitivity</label><span class="form-val-bubble" id="val-sensitivity-y">1.0x</span></div>
+          <input type="range" class="form-slider" id="setting-sensitivity-y" min="0.3" max="3.0" step="0.1" value="1.0">
+        </div>
+        <div class="form-row toggle-row"><label class="form-label">Invert Y Axis</label><input type="checkbox" class="form-checkbox" id="setting-invert-y"></div>
+        <div class="form-row toggle-row"><label class="form-label">Mobile Haptics</label><input type="checkbox" class="form-checkbox" id="setting-haptic" checked></div>
+      </div>
+
+      <div class="tab-page" id="tab-graphics">
+        <div class="form-row">
+          <label class="form-label" for="setting-graphics-preset">Performance Preset</label>
+          <select class="form-select" id="setting-graphics-preset">
+            <option value="high" selected>High (Visually Optimal)</option>
+            <option value="medium">Medium (Balanced)</option>
+            <option value="low">Low (Mobile Focused)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Field of View (FOV)</label><span class="form-val-bubble" id="val-fov">75°</span></div>
+          <input type="range" class="form-slider" id="setting-fov" min="60" max="105" step="1" value="75">
+        </div>
+        <div class="form-row toggle-row"><label class="form-label">CRT Scanlines Atmosphere</label><input type="checkbox" class="form-checkbox" id="setting-scanlines" checked></div>
+        <div class="form-row toggle-row"><label class="form-label">Dynamic Particle Spatter</label><input type="checkbox" class="form-checkbox" id="setting-particles" checked></div>
+        <div class="form-row toggle-row"><label class="form-label">Floating Damage Telemetry</label><input type="checkbox" class="form-checkbox" id="setting-damage-nums" checked></div>
+      </div>
+
+      <div class="tab-page" id="tab-audio">
+        <div class="form-row toggle-row"><label class="form-label">Master Audio</label><input type="checkbox" class="form-checkbox" id="setting-audio-enable" checked></div>
+        <div class="form-row toggle-row"><label class="form-label">Cyberpunk Soundscape</label><input type="checkbox" class="form-checkbox" id="setting-music-enable" checked></div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Music Volume</label><span class="form-val-bubble" id="val-music-vol">70%</span></div>
+          <input type="range" class="form-slider" id="setting-music-vol" min="0" max="100" step="5" value="70">
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">SFX Volume</label><span class="form-val-bubble" id="val-sfx-vol">90%</span></div>
+          <input type="range" class="form-slider" id="setting-sfx-vol" min="0" max="100" step="5" value="90">
+        </div>
+      </div>
+
+      <div class="tab-page" id="tab-hud">
+        <div class="form-row">
+          <label class="form-label">Mobile Controls Layout</label>
+          <select class="form-select" id="setting-touch-layout">
+            <option value="layout-standard" selected>Standard Layout</option>
+            <option value="layout-compact">Compact Spacing</option>
+            <option value="layout-wide">Widescreen Layout</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Touch Scale</label><span class="form-val-bubble" id="val-touch-scale">100%</span></div>
+          <input type="range" class="form-slider" id="setting-touch-scale" min="70" max="140" step="5" value="100">
+        </div>
+        <div class="form-row">
+          <div class="label-with-value"><label class="form-label">Touch Opacity</label><span class="form-val-bubble" id="val-touch-opacity">85%</span></div>
+          <input type="range" class="form-slider" id="setting-touch-opacity" min="30" max="100" step="5" value="85">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Reticle Type</label>
+          <select class="form-select" id="setting-reticle-style">
+            <option value="style-cross" selected>Standard Cross + Dot</option>
+            <option value="style-ring">Focus Ring</option>
+            <option value="style-dot">Tactical Dot Only</option>
+            <option value="style-hex">Sector Hex</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Reticle Hue</label>
+          <select class="form-select" id="setting-reticle-color">
+            <option value="#00f0ff" selected>Cyan Core (#00F0FF)</option>
+            <option value="#00ff66">Neon Green (#00FF66)</option>
+            <option value="#ffe600">Warning Amber (#FFE600)</option>
+            <option value="#ff0077">Lethal Magenta (#FF0077)</option>
+            <option value="#ffffff">Blank White (#FFFFFF)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-footer-row">
+        <button class="canonical-btn main-action" id="btn-save-settings">SAVE CHANGES</button>
+        <button class="canonical-btn ghost-action" id="btn-reset-settings">RESET DEFAULTS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary Game Engine -->
   <script src="game.js"></script>
+
+  <!-- =========================================================================
+       CORE OPTIMIZATION, THEME MANAGER & AGGRESSIVE POOLING ENGINE
+       ========================================================================= -->
+  <script>
+    /**
+     * ADVANCED ENGINE OVERHAUL & OPTIMIZATION LAYER
+     * Implements Phase 1, Phase 2 & Phase 3 Planner/UI Directives:
+     * - Dynamic Theming Tokens & Sector Lighting Palettes
+     * - Object Pooling for Zero-Allocation GC loop stability
+     * - Archetype Visual Markers & Reticle Locking
+     * - Combat Engagement Dimming
+     * - 25Hz Throttled Radar Rendering
+     */
+
+    // 1. Dynamic Map Theme Token Architecture
+    const ThemeManager = {
+      themes: {
+        0: {
+          name: 'SECTOR 01: NEON METROPOLIS',
+          primary: '#00f0ff',
+          primaryGlow: 'rgba(0, 240, 255, 0.6)',
+          panelBg: 'rgba(6, 14, 26, 0.88)',
+          border: 'rgba(0, 240, 255, 0.35)',
+          fog: 0x030a14,
+          ambient: 0x0c1a2c,
+          mainLight: 0x00f0ff,
+          accent: 0x00f0ff
+        },
+        1: {
+          name: 'SECTOR 02: REACTOR SUB-CORE',
+          primary: '#ff9900',
+          primaryGlow: 'rgba(255, 153, 0, 0.6)',
+          panelBg: 'rgba(20, 12, 4, 0.90)',
+          border: 'rgba(255, 153, 0, 0.45)',
+          fog: 0x140b02,
+          ambient: 0x221505,
+          mainLight: 0xffb700,
+          accent: 0xff7700
+        },
+        2: {
+          name: 'SECTOR 03: ORBITAL VOID HANGAR',
+          primary: '#66ccff',
+          primaryGlow: 'rgba(102, 204, 255, 0.6)',
+          panelBg: 'rgba(5, 12, 24, 0.88)',
+          border: 'rgba(102, 204, 255, 0.4)',
+          fog: 0x020610,
+          ambient: 0x081220,
+          mainLight: 0x66ccff,
+          accent: 0x0088ff
+        },
+        3: {
+          name: 'SECTOR 04: APEX QUANTUM CORE',
+          primary: '#ff0077',
+          primaryGlow: 'rgba(255, 0, 119, 0.65)',
+          panelBg: 'rgba(18, 4, 22, 0.92)',
+          border: 'rgba(255, 0, 119, 0.45)',
+          fog: 0x0d0212,
+          ambient: 0x1a0522,
+          mainLight: 0xff0077,
+          accent: 0xff0077
+        }
+      },
+      currentThemeId: -1,
+
+      applyTheme(sectorId) {
+        if (this.currentThemeId === sectorId) return;
+        this.currentThemeId = sectorId;
+        const t = this.themes[sectorId] || this.themes[0];
+
+        const root = document.documentElement;
+        root.style.setProperty('--primary', t.primary);
+        root.style.setProperty('--primary-glow', t.primaryGlow);
+        root.style.setProperty('--panel-bg', t.panelBg);
+        root.style.setProperty('--panel-border', `1px solid ${t.border}`);
+        root.style.setProperty('--font-accent', t.primary);
+
+        if (typeof scene !== 'undefined' && scene) {
+          scene.background.setHex(t.fog);
+          if (scene.fog) scene.fog.color.setHex(t.fog);
+        }
+        if (typeof ambientLight !== 'undefined' && ambientLight) ambientLight.color.setHex(t.ambient);
+        if (typeof mainLight !== 'undefined' && mainLight) mainLight.color.setHex(t.mainLight);
+      }
+    };
+
+    // 2. Pre-allocated Object Pools (GC Mitigation)
+    const ObjectPools = {
+      damageNodes: [],
+      maxDamageNodes: 24,
+      scratchVec3A: new THREE.Vector3(),
+      scratchVec3B: new THREE.Vector3(),
+      scratchDir: new THREE.Vector3(),
+
+      init() {
+        const layer = document.getElementById('damage-numbers-layer');
+        if (!layer) return;
+        for (let i = 0; i < this.maxDamageNodes; i++) {
+          const el = document.createElement('div');
+          el.className = 'floating-dmg';
+          el.style.display = 'none';
+          layer.appendChild(el);
+          this.damageNodes.push({ el, inUse: false, timer: 0 });
+        }
+      },
+
+      spawnDamage(amount, worldPos, isCrit = false) {
+        if (!settings.damageNumbers || typeof camera === 'undefined' || !camera) return;
+
+        this.scratchVec3A.copy(worldPos).project(camera);
+        if (this.scratchVec3A.z > 1) return;
+
+        const x = (this.scratchVec3A.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-this.scratchVec3A.y * 0.5 + 0.5) * window.innerHeight;
+
+        let node = this.damageNodes.find(n => !n.inUse);
+        if (!node) {
+          node = this.damageNodes[0]; // Recycle oldest
+        }
+
+        node.inUse = true;
+        node.el.className = `floating-dmg ${isCrit ? 'crit' : ''}`;
+        node.el.textContent = Math.round(amount);
+        node.el.style.left = `${x}px`;
+        node.el.style.top = `${y}px`;
+        node.el.style.display = 'block';
+
+        setTimeout(() => {
+          node.el.style.display = 'none';
+          node.inUse = false;
+        }, 650);
+      }
+    };
+
+    // 3. Aim Assist & Enemy Category Dynamic Lock Shape Patch
+    function patchAimAssistArchetypes() {
+      const origUpdateAimAssist = window.updateAimAssist;
+      window.updateAimAssist = function(dt) {
+        const lockRing = document.getElementById('reticle-aim-lock');
+        if (!lockRing || typeof camera === 'undefined' || !camera) return;
+
+        if (settings.aimAssist <= 0 || !enemies || enemies.length === 0 || gameState !== 'PLAYING') {
+          lockRing.className = 'reticle-aim-assist';
+          return;
+        }
+
+        const camForward = ObjectPools.scratchVec3A;
+        camera.getWorldDirection(camForward);
+
+        const camPos = ObjectPools.scratchVec3B;
+        camera.getWorldPosition(camPos);
+
+        let bestTarget = null;
+        let bestAngle = Infinity;
+        const maxAngle = THREE.MathUtils.degToRad(24);
+
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i];
+          if (enemy.isDead || !enemy.mesh) continue;
+
+          const toEnemy = ObjectPools.scratchDir.subVectors(
+            enemy.mesh.position.clone().add(new THREE.Vector3(0, enemy.height * 0.5, 0)),
+            camPos
+          );
+          const dist = toEnemy.length();
+          if (dist < 1.0 || dist > 60.0) continue;
+
+          toEnemy.normalize();
+          const dot = camForward.dot(toEnemy);
+          const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+          if (angle < maxAngle && angle < bestAngle) {
+            bestAngle = angle;
+            bestTarget = enemy;
+          }
+        }
+
+        if (bestTarget) {
+          // Dynamic Lock-on shape per category
+          let lockClass = 'locked lock-circle';
+          if (bestTarget.type === 'BRUISER' || bestTarget.type === 'BOSS') lockClass = 'locked lock-hex';
+          else if (bestTarget.type === 'PHANTOM') lockClass = 'locked lock-diamond';
+          else if (bestTarget.type === 'SWARM') lockClass = 'locked lock-pip';
+
+          lockRing.className = `reticle-aim-assist ${lockClass}`;
+
+          const targetPos = bestTarget.mesh.position.clone().add(new THREE.Vector3(0, bestTarget.height * 0.5, 0));
+          const targetDir = targetPos.sub(camPos).normalize();
+
+          const targetYaw = Math.atan2(-targetDir.x, -targetDir.z);
+          const targetPitch = Math.asin(targetDir.y);
+
+          const strength = (settings.aimAssist / 100) * 0.45;
+          const lerpRate = Math.min(dt * 7.5 * strength, 0.4);
+
+          let yawDiff = targetYaw - player.yaw;
+          while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+          while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+
+          player.yaw += yawDiff * lerpRate;
+          player.pitch += (targetPitch - player.pitch) * lerpRate;
+        } else {
+          lockRing.className = 'reticle-aim-assist';
+        }
+      };
+    }
+
+    // 4. Combat Engagement HUD Dimmer
+    let lastCombatEngageTime = 0;
+    function updateCombatDimming() {
+      const isUnderFire = (typeof enemies !== 'undefined' && enemies.some(e => !e.isDead && e.mesh && e.mesh.position.distanceTo(player.position) < 28));
+      const isShooting = (typeof isTriggerHeld !== 'undefined' && isTriggerHeld);
+      const isDimmed = (isUnderFire || isShooting);
+
+      const dimmables = document.querySelectorAll('.combat-dimmable');
+      dimmables.forEach(el => {
+        el.classList.toggle('combat-dimmed', isDimmed);
+      });
+    }
+
+    // 5. Throttled 25Hz Radar Redraw Loop
+    let lastRadarRender = 0;
+    function patchRadarThrottled() {
+      window.renderRadar = function() {
+        const now = performance.now();
+        if (now - lastRadarRender < 40) return; // 25 FPS max
+        lastRadarRender = now;
+
+        const canvas = document.getElementById('radar-canvas');
+        if (!canvas || typeof player === 'undefined') return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2, range = 45;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Circular range rings
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+        ctx.lineWidth = 1;
+        [15, 30, 45].forEach(r => {
+          ctx.beginPath();
+          ctx.arc(cx, cy, (r / range) * (w / 2), 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        // Radar rotating sweep
+        const tSec = now / 1000;
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(tSec * 3) * (w / 2), cy + Math.sin(tSec * 3) * (h / 2));
+        ctx.stroke();
+
+        // Archetype Blips
+        if (typeof enemies !== 'undefined') {
+          const cosYaw = Math.cos(player.yaw);
+          const sinYaw = Math.sin(player.yaw);
+
+          for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (enemy.isDead || !enemy.mesh) continue;
+
+            const dx = enemy.mesh.position.x - player.position.x;
+            const dz = enemy.mesh.position.z - player.position.z;
+            const rx = dx * cosYaw - dz * sinYaw;
+            const ry = dx * sinYaw + dz * cosYaw;
+
+            const plotX = cx + (rx / range) * (w / 2);
+            const plotY = cy + (ry / range) * (h / 2);
+
+            if (plotX >= 4 && plotX <= w - 4 && plotY >= 4 && plotY <= h - 4) {
+              ctx.beginPath();
+              if (enemy.type === 'SWARM') {
+                ctx.fillStyle = '#ff9900';
+                ctx.arc(plotX, plotY, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+              } else if (enemy.type === 'BRUISER' || enemy.type === 'BOSS') {
+                ctx.fillStyle = enemy.type === 'BOSS' ? '#ff0077' : '#00f0ff';
+                const s = enemy.type === 'BOSS' ? 5 : 3.8;
+                for (let k = 0; k < 6; k++) {
+                  const a = (k * Math.PI) / 3;
+                  const px = plotX + s * Math.cos(a);
+                  const py = plotY + s * Math.sin(a);
+                  if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+              } else if (enemy.type === 'PHANTOM') {
+                ctx.fillStyle = '#ff00cc';
+                ctx.moveTo(plotX, plotY - 4.5);
+                ctx.lineTo(plotX + 4.5, plotY);
+                ctx.lineTo(plotX, plotY + 4.5);
+                ctx.lineTo(plotX - 4.5, plotY);
+                ctx.closePath();
+                ctx.fill();
+              } else {
+                ctx.fillStyle = '#ff0055';
+                ctx.arc(plotX, plotY, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        }
+
+        // Powerups
+        if (typeof powerups !== 'undefined') {
+          const cosYaw = Math.cos(player.yaw);
+          const sinYaw = Math.sin(player.yaw);
+          for (let i = 0; i < powerups.length; i++) {
+            const p = powerups[i];
+            const dx = p.mesh.position.x - player.position.x;
+            const dz = p.mesh.position.z - player.position.z;
+            const rx = dx * cosYaw - dz * sinYaw;
+            const ry = dx * sinYaw + dz * cosYaw;
+            const plotX = cx + (rx / range) * (w / 2);
+            const plotY = cy + (ry / range) * (h / 2);
+
+            if (plotX >= 4 && plotX <= w - 4 && plotY >= 4 && plotY <= h - 4) {
+              ctx.fillStyle = '#00ff88';
+              ctx.beginPath();
+              ctx.arc(plotX, plotY, 2.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+
+        // Center Player Marker
+        ctx.fillStyle = '#00f0ff';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 4.5);
+        ctx.lineTo(cx - 3.5, cy + 4.5);
+        ctx.lineTo(cx + 3.5, cy + 4.5);
+        ctx.closePath();
+        ctx.fill();
+      };
+    }
+
+    // 6. Dynamic Perspective Switcher Visual Updater
+    function patchPOVToggle() {
+      const origTogglePOV = window.togglePOV;
+      window.togglePOV = function(forcedMode = null) {
+        origTogglePOV(forcedMode);
+        const iconSvg = document.getElementById('pov-icon');
+        if (iconSvg) {
+          if (perspectiveMode === 'FPP') {
+            // Eye icon for First-person
+            iconSvg.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+          } else {
+            // Orbit/Silhouette icon for Third-person
+            iconSvg.innerHTML = '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>';
+          }
+        }
+      };
+    }
+
+    // 7. Initialize Overhauls
+    window.addEventListener('load', () => {
+      ObjectPools.init();
+      patchAimAssistArchetypes();
+      patchRadarThrottled();
+      patchPOVToggle();
+
+      // Monitor themes and combat dimming in background loop
+      setInterval(() => {
+        if (typeof currentSectorIndex !== 'undefined') {
+          ThemeManager.applyTheme(currentSectorIndex);
+        }
+        if (typeof gameState !== 'undefined' && gameState === 'PLAYING') {
+          updateCombatDimming();
+        }
+      }, 150);
+    });
+  </script>
 </body>
 </html>

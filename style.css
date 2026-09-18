@@ -1,4 +1,19 @@
+/* ==========================================================================
+   CYBERSTORM: PROTOCOL 0 - UNIFIED UI ARCHITECTURE & DYNAMIC THEME SYSTEM
+   Complete Stylesheet - Responsive, Deduplicated, Theme-Aware
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CSS CUSTOM PROPERTIES / DESIGN TOKENS
+   Dynamically overridden by ThemeManager per sector
+   ========================================================================== */
 :root {
+  /* Core Fonts */
+  --global-font: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono-font: 'Share Tech Mono', monospace;
+  --cyber-font: 'Orbitron', sans-serif;
+
+  /* Theme Tokens (Default: Neon Metropolis / Sector 01) */
   --primary: #00f0ff;
   --primary-dim: rgba(0, 240, 255, 0.25);
   --primary-glow: rgba(0, 240, 255, 0.6);
@@ -8,15 +23,37 @@
   --danger-glow: rgba(255, 0, 85, 0.65);
   --success: #00ff88;
   --success-glow: rgba(0, 255, 136, 0.6);
+
+  /* Panel / Surface */
   --bg-dark: #050b14;
-  --panel-bg: rgba(6, 14, 26, 0.85);
+  --panel-bg: rgba(6, 14, 26, 0.88);
   --panel-border: 1px solid rgba(0, 240, 255, 0.35);
+  --font-accent: #00f0ff;
+
+  /* Reticle */
   --reticle-color: #00f0ff;
+
+  /* Touch Controls */
   --touch-scale: 1;
   --touch-opacity: 0.85;
+
+  /* Combat Dimming */
+  --hud-dim-opacity: 0.3;
+
+  /* Safe Zone Margins (min 16px / 2% viewport offset) */
+  --safe-margin: max(16px, 2vw);
+  --safe-margin-v: max(16px, 2vh);
+
+  /* Min touch target per WCAG / Apple HIG */
+  --min-touch: 44px;
 }
 
-* {
+/* ==========================================================================
+   2. GLOBAL RESET & BASE STYLES
+   ========================================================================== */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -25,15 +62,19 @@
   touch-action: none;
 }
 
-body, html {
+body,
+html {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background-color: var(--bg-dark);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--mono-font);
   color: #fff;
 }
 
+/* ==========================================================================
+   3. WEBGL CANVAS
+   ========================================================================== */
 #webgl-canvas {
   position: absolute;
   top: 0;
@@ -44,7 +85,9 @@ body, html {
   display: block;
 }
 
-/* --- CRT Scanlines & Visual Atmosphere --- */
+/* ==========================================================================
+   4. CRT SCANLINES & FULLSCREEN VISUAL OVERLAYS
+   ========================================================================== */
 .scanlines {
   position: absolute;
   top: 0;
@@ -53,15 +96,9 @@ body, html {
   height: 100%;
   pointer-events: none;
   z-index: 4;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.02),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.02)
-  );
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
   background-size: 100% 3px, 5px 100%;
   box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
   transition: opacity 0.3s ease;
@@ -71,7 +108,9 @@ body, html {
   opacity: 0;
 }
 
-#damage-overlay, #powerup-overlay, #heal-overlay {
+#damage-overlay,
+#powerup-overlay,
+#heal-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -105,15 +144,22 @@ body, html {
   box-shadow: inset 0 0 90px rgba(0, 255, 136, 0.6);
 }
 
-#powerup-overlay.quad { box-shadow: inset 0 0 70px rgba(255, 183, 0, 0.6); }
-#powerup-overlay.speed { box-shadow: inset 0 0 70px rgba(0, 240, 255, 0.6); }
+#powerup-overlay.quad {
+  box-shadow: inset 0 0 70px rgba(255, 183, 0, 0.6);
+}
+
+#powerup-overlay.speed {
+  box-shadow: inset 0 0 70px rgba(0, 240, 255, 0.6);
+}
 
 @keyframes crit-pulse {
   0% { box-shadow: inset 0 0 45px rgba(255, 0, 85, 0.3); }
   100% { box-shadow: inset 0 0 110px rgba(255, 0, 85, 0.9); }
 }
 
-/* --- Floating Damage Numbers --- */
+/* ==========================================================================
+   5. FLOATING DAMAGE NUMBERS LAYER
+   ========================================================================== */
 #damage-numbers-layer {
   position: absolute;
   top: 0;
@@ -127,13 +173,14 @@ body, html {
 
 .floating-dmg {
   position: absolute;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-weight: bold;
   font-size: 18px;
   color: #fff;
   text-shadow: 0 0 6px var(--primary);
   pointer-events: none;
   animation: float-up-fade 0.7s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 .floating-dmg.crit {
@@ -143,11 +190,19 @@ body, html {
 }
 
 @keyframes float-up-fade {
-  0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
-  100% { opacity: 0; transform: translate(-50%, -60px) scale(1.1); }
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -60px) scale(1.1);
+  }
 }
 
-/* --- Loading Screen --- */
+/* ==========================================================================
+   6. LOADING SCREEN
+   ========================================================================== */
 #loading-screen {
   position: fixed;
   top: 0;
@@ -207,10 +262,13 @@ body, html {
   color: #fff;
 }
 
-@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 .loading-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 36px;
   font-weight: 900;
   letter-spacing: 6px;
@@ -258,7 +316,10 @@ body, html {
   margin-top: 4px;
 }
 
-/* --- HUD System --- */
+/* ==========================================================================
+   7. HUD ROOT & STRICT 5-ZONE LAYOUT ARCHITECTURE
+   Safe-Zone enforced (min 16px / 2% viewport offset between modules)
+   ========================================================================== */
 #hud {
   position: absolute;
   top: 0;
@@ -266,29 +327,115 @@ body, html {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
   display: none;
 }
 
-.hud-top-bar {
+/* --- ZONE 1: TOP-LEFT (Player Vitals, Sector, Wave, Buffs) --- */
+.hud-anchor-top-left {
   position: absolute;
-  top: 15px;
-  left: 15px;
-  right: 15px;
+  top: var(--safe-margin-v);
+  left: var(--safe-margin);
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 30;
+  pointer-events: auto;
+  max-width: 320px;
 }
 
-.hud-group { display: flex; flex-direction: column; }
+/* --- ZONE 2: TOP-RIGHT (Radar Minimap, Quick System Utilities) --- */
+.hud-anchor-top-right {
+  position: absolute;
+  top: var(--safe-margin-v);
+  right: var(--safe-margin);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 35;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
 
+/* --- ZONE 3: TOP-CENTER (Perspective Switcher, Boss Bar, Wave Banner) --- */
+.hud-anchor-top-center {
+  position: absolute;
+  top: var(--safe-margin-v);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+/* --- ZONE 4: BOTTOM-LEFT (Stims, Fire Mode, Weapon Dock, Score) --- */
+.hud-anchor-bottom-left {
+  position: absolute;
+  bottom: var(--safe-margin-v);
+  left: var(--safe-margin);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 300px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+/* --- ZONE 5: BOTTOM-RIGHT (Active Weapon Ammo, Fire Mode, Reload) --- */
+.hud-anchor-bottom-right {
+  position: absolute;
+  bottom: var(--safe-margin-v);
+  right: var(--safe-margin);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 30;
+  pointer-events: auto;
+  text-align: right;
+}
+
+/* Hide legacy layout containers (deduplicated) */
+.hud-top-bar,
+.bottom-left,
+.bottom-right {
+  display: none !important;
+}
+
+/* ==========================================================================
+   8. COMBAT ENGAGEMENT DIMMING RULE
+   Reduces non-critical HUD to 30% opacity during active engagement
+   ========================================================================== */
+.combat-dimmable {
+  transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.combat-dimmed {
+  opacity: var(--hud-dim-opacity) !important;
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   9. SCI-FI PANEL COMPONENT (Shared base for HUD boxes)
+   ========================================================================== */
 .sci-box {
   background: var(--panel-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: var(--panel-border);
   padding: 8px 14px;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
 }
 
 .sci-label {
@@ -298,8 +445,11 @@ body, html {
   text-transform: uppercase;
 }
 
+/* ==========================================================================
+   10. SCORE & COMBO DISPLAY
+   ========================================================================== */
 .score-value {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 22px;
   font-weight: 700;
   color: #fff;
@@ -311,33 +461,47 @@ body, html {
   align-items: center;
   gap: 8px;
   margin-top: 4px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 11px;
   color: var(--secondary);
   opacity: 0;
   transition: opacity 0.2s;
 }
 
-.combo-badge.active { opacity: 1; }
+.combo-badge.active {
+  opacity: 1;
+}
 
-.combo-meter { width: 50px; height: 3px; background: rgba(255,255,255,0.2); }
-.combo-fill { height: 100%; background: var(--secondary); transition: width 0.1s; }
+.combo-meter {
+  width: 50px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+}
 
+.combo-fill {
+  height: 100%;
+  background: var(--secondary);
+  transition: width 0.1s;
+}
+
+/* ==========================================================================
+   11. SECTOR & WAVE BADGES
+   ========================================================================== */
 .level-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
 .sector-tag {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 12px;
   font-weight: 700;
   color: var(--secondary);
 }
 
 .wave-tag {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 16px;
   font-weight: 900;
   color: var(--primary);
@@ -347,14 +511,20 @@ body, html {
   font-size: 11px;
   color: #aaa;
   margin-top: 4px;
-  text-align: center;
+  text-align: left;
 }
 
 .threats-count {
   color: var(--secondary);
   font-weight: bold;
+  font-size: 14px;
+  text-shadow: 0 0 8px var(--secondary);
 }
 
+/* ==========================================================================
+   12. HUD QUICK ACTION ICON BUTTONS (Top-Right Persistent Row)
+   Single-source — no duplicate triggers
+   ========================================================================== */
 .hud-quick-actions {
   display: flex;
   gap: 6px;
@@ -370,13 +540,47 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 10px;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% 100%,
+    6px 100%,
+    0 calc(100% - 6px)
+  );
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.hud-icon-btn:hover { background: var(--primary); color: #000; }
+.hud-icon-btn:hover {
+  background: var(--primary);
+  color: #000;
+}
 
+/* ==========================================================================
+   13. RADAR / MINIMAP FRAME (Theme-Aware Border)
+   ========================================================================== */
+.radar-frame {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: rgba(3, 8, 16, 0.9);
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 16px var(--primary-dim);
+  overflow: hidden;
+  position: relative;
+}
+
+#radar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Legacy radar container (keep for backward compat) */
 .radar-container {
   width: 100px;
   height: 100px;
@@ -389,39 +593,551 @@ body, html {
   align-self: flex-end;
 }
 
-#radar-canvas { width: 100%; height: 100%; }
+/* ==========================================================================
+   14. TWO-STATE PERSPECTIVE (FPP/TPP) SWITCHER WIDGET
+   Single unified toggle — replaces all scattered POV buttons
+   ========================================================================== */
+.pov-switcher-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  color: var(--primary);
+  font-family: var(--cyber-font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  min-height: var(--min-touch);
+  min-width: var(--min-touch);
+}
 
-/* --- Boss HUD --- */
-#boss-hud-container {
+.pov-switcher-widget:hover {
+  background: var(--primary);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.pov-icon-svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* ==========================================================================
+   15. STATUS GAUGES (Shield & Health)
+   Theme-Aware fills inheriting --primary
+   ========================================================================== */
+.status-gauge-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #8bb3cb;
+}
+
+.meta-label {
+  font-size: 10px;
+  color: #8bb3cb;
+  letter-spacing: 1px;
+}
+
+.meta-val {
+  font-family: var(--cyber-font);
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gauge-frame {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.gauge-ghost {
   position: absolute;
-  top: 80px;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: width 0.35s;
+}
+
+.gauge-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  transition: width 0.1s;
+}
+
+.shield-fill {
+  background: linear-gradient(90deg, #0088ff, var(--primary));
+}
+
+.health-fill {
+  background: linear-gradient(90deg, #ff0055, #00ff88);
+}
+
+/* ==========================================================================
+   16. ACTIVE POWERUP BUFF CHIPS
+   ========================================================================== */
+#buff-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.buff-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(6, 14, 26, 0.85);
+  border: 1px solid var(--secondary);
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #fff;
+}
+
+.buff-icon {
+  font-size: 14px;
+}
+
+.buff-name {
+  font-family: var(--cyber-font);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #cbdbe3;
+}
+
+.buff-timer {
+  color: var(--secondary);
+  font-family: var(--cyber-font);
+  font-weight: bold;
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   17. RETICLE / CROSSHAIR SYSTEM
+   4 reticle styles + aim-assist lock ring
+   ========================================================================== */
+#reticle-container {
+  position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.reticle-tick {
+  position: absolute;
+  background: var(--reticle-color);
+  transition: transform 0.08s ease-out;
+  box-shadow: 0 0 6px var(--reticle-color);
+}
+
+.reticle-tick.top    { top: 2px;    left: 23px; width: 2px; height: 8px; }
+.reticle-tick.bottom { bottom: 2px; left: 23px; width: 2px; height: 8px; }
+.reticle-tick.left   { left: 2px;   top: 23px;  width: 8px; height: 2px; }
+.reticle-tick.right  { right: 2px;  top: 23px;  width: 8px; height: 2px; }
+
+.reticle-ring {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--reticle-color);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.reticle-dot {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  width: 4px;
+  height: 4px;
+  background: var(--reticle-color);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--reticle-color);
+}
+
+/* Style Variations */
+#reticle-container.style-ring .reticle-ring {
+  opacity: 0.85;
+}
+
+#reticle-container.style-dot .reticle-tick {
+  display: none;
+}
+
+#reticle-container.style-hex .reticle-ring {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  opacity: 0.85;
+}
+
+/* Spread animation on firing */
+#reticle-container.spread .reticle-tick.top    { transform: translateY(-8px); }
+#reticle-container.spread .reticle-tick.bottom { transform: translateY(8px); }
+#reticle-container.spread .reticle-tick.left   { transform: translateX(-8px); }
+#reticle-container.spread .reticle-tick.right  { transform: translateX(8px); }
+
+/* ==========================================================================
+   18. AIM ASSIST LOCK-ON RING + ENEMY ARCHETYPE SHAPES
+   Circle=Light/Drone, Hexagon=Heavy/Boss, Diamond=Stealth, Pip=Swarmer
+   ========================================================================== */
+.reticle-aim-assist {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 40px;
+  height: 40px;
+  border: 2px dashed var(--secondary);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(1.3);
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.reticle-aim-assist.locked {
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+/* Circle = Light / Drone */
+.reticle-aim-assist.lock-circle {
+  border-radius: 50%;
+  border-color: #00f0ff;
+}
+
+/* Hexagon = Heavy / Mech / Boss */
+.reticle-aim-assist.lock-hex {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  border-color: #ff0055;
+  background: rgba(255, 0, 85, 0.15);
+}
+
+/* Diamond = Stealth / Phantom */
+.reticle-aim-assist.lock-diamond {
+  border-radius: 0;
+  transform: rotate(45deg) scale(0.9);
+  border-color: #ff00cc;
+  background: rgba(255, 0, 204, 0.15);
+}
+
+/* Pip = Swarm */
+.reticle-aim-assist.lock-pip {
+  border-radius: 3px;
+  border-color: #ffb700;
+}
+
+/* ==========================================================================
+   19. HITMARKER
+   ========================================================================== */
+#hitmarker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  width: 32px;
+  height: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease, transform 0.08s ease;
+  z-index: 16;
+}
+
+#hitmarker.hit {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#hitmarker.crit {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+#hitmarker::before,
+#hitmarker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 2px;
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+
+#hitmarker::before { transform: translate(-50%, -50%) rotate(45deg); }
+#hitmarker::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+
+#hitmarker.crit::before,
+#hitmarker.crit::after {
+  background: var(--danger);
+  box-shadow: 0 0 10px var(--danger);
+}
+
+/* ==========================================================================
+   20. STIM LAUNCHER & FIRE MODE BUTTONS (Bottom-Left)
+   ========================================================================== */
+.stim-launcher-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  pointer-events: auto;
+}
+
+.btn-stim-hud,
+.btn-firemode-hud {
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  color: #fff;
+  padding: 5px 9px;
+  font-family: var(--cyber-font);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: var(--min-touch);
+  min-width: var(--min-touch);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% 100%,
+    6px 100%,
+    0 calc(100% - 6px)
+  );
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-stim-hud:hover,
+.btn-firemode-hud:hover {
+  background: var(--primary);
+  color: #000;
+}
+
+.stim-icon {
+  font-size: 14px;
+}
+
+.stim-name {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.stim-badge {
+  color: var(--success);
+  font-weight: bold;
+}
+
+.firemode-label {
+  font-size: 9px;
+  color: #8bb3cb;
+  letter-spacing: 1px;
+}
+
+.firemode-val {
+  color: var(--secondary);
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   21. WEAPON ARSENAL DOCK (Tab Switch)
+   ========================================================================== */
+.weapon-arsenal-dock {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  pointer-events: auto;
+}
+
+.weapon-tab {
+  flex: 1;
+  background: rgba(6, 14, 26, 0.7);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: #799baa;
+  padding: 3px;
+  cursor: pointer;
+  font-family: var(--cyber-font);
+  font-size: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 36px;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.weapon-tab.active {
+  background: var(--primary);
+  color: #000;
+  font-weight: bold;
+}
+
+.weapon-tab:hover:not(.active) {
+  background: rgba(0, 240, 255, 0.15);
+}
+
+.wep-key {
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.wep-title {
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  margin-top: 1px;
+}
+
+/* ==========================================================================
+   22. WEAPON INFO & AMMO READOUT (Bottom-Right)
+   ========================================================================== */
+.weapon-info-tag {
+  font-family: var(--cyber-font);
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
+
+.ammo-readout-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.ammo-active-count {
+  font-family: var(--cyber-font);
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px var(--primary);
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.ammo-active-count.low {
+  color: var(--secondary);
+  text-shadow: 0 0 10px var(--secondary);
+}
+
+.ammo-active-count.empty {
+  color: var(--danger);
+  text-shadow: 0 0 10px var(--danger);
+}
+
+.ammo-divider {
+  font-size: 18px;
+  color: #555;
+}
+
+.ammo-reserve-count {
+  font-size: 16px;
+  color: #7d9ba6;
+}
+
+/* ==========================================================================
+   23. RELOAD CUE & METER
+   ========================================================================== */
+.reload-cue {
+  font-family: var(--cyber-font);
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--secondary);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.reload-cue.visible,
+.reload-cue.active {
+  opacity: 1;
+  animation: crit-pulse 0.8s infinite alternate;
+}
+
+.reload-meter-box {
+  width: 140px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 183, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.2s;
+  overflow: hidden;
+}
+
+.reload-meter-box.visible {
+  opacity: 1;
+}
+
+.reload-meter-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--secondary);
+  transition: width 0.05s linear;
+}
+
+/* ==========================================================================
+   24. BOSS HUD GAUGE (Top-Center, Anchored)
+   Distinct crest badge with phase dividers
+   ========================================================================== */
+#boss-hud-container {
+  width: 90vw;
   max-width: 500px;
-  background: rgba(15, 3, 8, 0.9);
+  background: rgba(15, 3, 8, 0.92);
   border: 1px solid var(--danger);
   padding: 8px 12px;
-  z-index: 12;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .boss-title-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
 }
 
 .boss-name {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 12px;
   color: var(--danger);
   font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .boss-pct {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 12px;
   color: #fff;
+  font-weight: 700;
 }
 
 .boss-gauge-frame {
@@ -429,33 +1145,50 @@ body, html {
   width: 100%;
   height: 8px;
   background: #000;
-  border: 1px solid rgba(255,0,85,0.4);
+  border: 1px solid rgba(255, 0, 85, 0.4);
   overflow: hidden;
 }
 
 .boss-gauge-ghost {
   position: absolute;
-  top: 0; left: 0;
-  height: 100%; width: 100%;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
   background: rgba(255, 255, 255, 0.3);
   transition: width 0.3s;
 }
 
 .boss-gauge-fill {
   position: absolute;
-  top: 0; left: 0;
-  height: 100%; width: 100%;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
   background: linear-gradient(90deg, #ff0055, #ff6600);
   transition: width 0.1s;
 }
 
-/* --- Wave Banner --- */
-#wave-banner {
+/* Boss gauge phase divider markers (33%, 66%) */
+.boss-gauge-frame::before,
+.boss-gauge-frame::after {
+  content: '';
   position: absolute;
-  top: 140px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.85);
-  font-family: 'Orbitron', sans-serif;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 2;
+}
+
+.boss-gauge-frame::before { left: 33.33%; }
+.boss-gauge-frame::after  { left: 66.66%; }
+
+/* ==========================================================================
+   25. WAVE ANNOUNCEMENT BANNER (Top-Center)
+   ========================================================================== */
+#wave-banner {
+  font-family: var(--cyber-font);
   font-size: 26px;
   font-weight: 900;
   color: #fff;
@@ -470,288 +1203,133 @@ body, html {
   transition: all 0.35s ease;
   white-space: nowrap;
   z-index: 15;
+  transform: scale(0.85);
 }
 
-#wave-banner.show, #wave-banner.active {
+#wave-banner.show,
+#wave-banner.active {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: scale(1);
 }
 
-/* --- Buff Tray --- */
-#buff-tray {
-  position: absolute;
-  top: 130px;
-  left: 15px;
+/* ==========================================================================
+   26. CANONICAL BUTTONS (Deduplicated, Single Source)
+   All modal actions use these — no duplicate event listener buttons
+   ========================================================================== */
+.canonical-action-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.buff-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(6, 14, 26, 0.85);
-  border: 1px solid var(--secondary);
-  padding: 4px 10px;
-  font-size: 11px;
-  color: #fff;
-}
-
-.buff-timer {
-  color: var(--secondary);
-  font-family: 'Orbitron', sans-serif;
-  font-weight: bold;
-}
-
-/* --- Reticle / Crosshair --- */
-#reticle-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  pointer-events: none;
-}
-
-.reticle-tick {
-  position: absolute;
-  background: var(--reticle-color);
-  transition: transform 0.08s ease-out;
-  box-shadow: 0 0 6px var(--reticle-color);
-}
-
-.reticle-tick.top { top: 2px; left: 23px; width: 2px; height: 8px; }
-.reticle-tick.bottom { bottom: 2px; left: 23px; width: 2px; height: 8px; }
-.reticle-tick.left { left: 2px; top: 23px; width: 8px; height: 2px; }
-.reticle-tick.right { right: 2px; top: 23px; width: 8px; height: 2px; }
-
-.reticle-ring {
-  position: absolute;
-  top: 12px; left: 12px;
-  width: 24px; height: 24px;
-  border: 1px solid var(--reticle-color);
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-}
-
-.reticle-dot {
-  position: absolute;
-  top: 22px; left: 22px;
-  width: 4px; height: 4px;
-  background: var(--reticle-color);
-  border-radius: 50%;
-  box-shadow: 0 0 6px var(--reticle-color);
-}
-
-.reticle-aim-assist {
-  position: absolute;
-  top: 6px; left: 6px;
-  width: 36px; height: 36px;
-  border: 1px dashed var(--secondary);
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.reticle-aim-assist.locked {
-  opacity: 1;
-  transform: scale(0.9);
-}
-
-#reticle-container.style-ring .reticle-ring { opacity: 0.85; }
-#reticle-container.style-dot .reticle-tick { display: none; }
-#reticle-container.style-hex .reticle-ring {
-  border-radius: 0;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  opacity: 0.85;
-}
-
-#reticle-container.spread .reticle-tick.top { transform: translateY(-8px); }
-#reticle-container.spread .reticle-tick.bottom { transform: translateY(8px); }
-#reticle-container.spread .reticle-tick.left { transform: translateX(-8px); }
-#reticle-container.spread .reticle-tick.right { transform: translateX(8px); }
-
-/* --- Hitmarker --- */
-#hitmarker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.6);
-  width: 32px;
-  height: 32px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.08s ease, transform 0.08s ease;
-}
-
-#hitmarker.hit {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-#hitmarker.crit {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1.3);
-}
-
-#hitmarker::before, #hitmarker::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 28px; height: 2px;
-  background: #fff;
-  box-shadow: 0 0 6px #fff;
-}
-
-#hitmarker::before { transform: translate(-50%, -50%) rotate(45deg); }
-#hitmarker::after { transform: translate(-50%, -50%) rotate(-45deg); }
-#hitmarker.crit::before, #hitmarker.crit::after { background: var(--danger); }
-
-/* --- Bottom Left: Gauges & Weapons --- */
-.bottom-left {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  width: 260px;
-  gap: 5px;
-}
-
-.status-gauge-block { display: flex; flex-direction: column; gap: 2px; }
-
-.status-meta-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: #8bb3cb;
-}
-
-.gauge-frame {
-  position: relative;
+  gap: 12px;
+  margin-top: 18px;
   width: 100%;
-  height: 8px;
-  background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(255,255,255,0.1);
-  overflow: hidden;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.gauge-ghost {
-  position: absolute;
-  top: 0; left: 0;
-  height: 100%; width: 100%;
-  background: rgba(255, 255, 255, 0.3);
-  transition: width 0.35s;
-}
-
-.gauge-fill { position: absolute; top: 0; left: 0; height: 100%; width: 100%; transition: width 0.1s; }
-.shield-fill { background: linear-gradient(90deg, #0088ff, var(--primary)); }
-.health-fill { background: linear-gradient(90deg, #ff0055, #00ff88); }
-
-/* --- Consumables & Fire Mode --- */
-.stim-launcher-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-  pointer-events: auto;
-}
-
-.btn-stim-hud, .btn-firemode-hud {
+.canonical-btn {
+  padding: 12px 28px;
+  font-family: var(--cyber-font);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
   background: var(--panel-bg);
   border: var(--panel-border);
-  color: #fff;
-  padding: 5px 9px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
-}
-
-.stim-badge { color: var(--success); font-weight: bold; }
-.firemode-val { color: var(--secondary); font-weight: bold; }
-
-/* --- Weapon Arsenal Dock --- */
-.weapon-arsenal-dock { display: flex; gap: 4px; margin-top: 4px; pointer-events: auto; }
-.weapon-tab {
-  flex: 1;
-  background: rgba(6,14,26,0.7);
-  border: 1px solid rgba(0,240,255,0.25);
-  color: #799baa;
-  padding: 3px;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.weapon-tab.active { background: var(--primary); color: #000; font-weight: bold; }
-
-/* --- Bottom Right: Weapon & Ammo --- */
-.bottom-right {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  align-items: flex-end;
-  gap: 3px;
-}
-
-.weapon-info-tag {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 12px;
-  font-weight: bold;
   color: var(--primary);
-  letter-spacing: 1px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  min-height: var(--min-touch);
+  min-width: var(--min-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.ammo-readout-row {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+.canonical-btn:hover {
+  background: var(--primary);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px var(--primary-glow);
 }
 
-.ammo-active-count {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 36px;
-  font-weight: 900;
+.canonical-btn:active {
+  transform: translateY(0px);
+}
+
+.canonical-btn.main-action {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  box-shadow: 0 0 25px var(--primary-glow);
+}
+
+.canonical-btn.main-action:hover {
+  background: #fff;
+  box-shadow: 0 0 35px #fff;
+}
+
+.canonical-btn.danger-action {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.canonical-btn.danger-action:hover {
+  background: var(--danger);
   color: #fff;
-  text-shadow: 0 0 10px var(--primary);
+  box-shadow: 0 0 25px var(--danger-glow);
 }
 
-.ammo-active-count.low { color: var(--secondary); text-shadow: 0 0 10px var(--secondary); }
-.ammo-active-count.empty { color: var(--danger); text-shadow: 0 0 10px var(--danger); }
-.ammo-divider { font-size: 18px; color: #555; }
-.ammo-reserve-count { font-size: 16px; color: #7d9ba6; }
+.canonical-btn.ghost-action {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ccc;
+}
 
-.reload-cue {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
+.canonical-btn.ghost-action:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Legacy button classes (backward compat) */
+.btn-cyber {
+  padding: 12px 28px;
+  font-family: var(--cyber-font);
+  font-size: 13px;
   font-weight: bold;
-  color: var(--secondary);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.reload-cue.visible, .reload-cue.active {
-  opacity: 1;
-  animation: crit-pulse 0.8s infinite alternate;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 2px;
+  min-height: var(--min-touch);
 }
 
-.reload-meter-box {
-  width: 140px;
-  height: 4px;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(255, 183, 0, 0.4);
-  opacity: 0;
-  transition: opacity 0.2s;
+.btn-primary-glow {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 15px var(--primary-glow);
 }
-.reload-meter-box.visible { opacity: 1; }
-.reload-meter-fill { width: 0%; height: 100%; background: var(--secondary); }
 
-/* --- Touch Controls Overlay --- */
+.btn-secondary-ghost {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 0 15px var(--danger-glow);
+}
+
+.modal-cta-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   27. MOBILE TOUCH CONTROLS OVERLAY
+   All touch targets enforce 44x44px minimum hitboxes
+   ========================================================================== */
 #mobile-controls {
   position: absolute;
   top: 0;
@@ -764,6 +1342,7 @@ body, html {
   opacity: var(--touch-opacity);
 }
 
+/* Joystick Zone */
 .touch-zone-left {
   position: absolute;
   bottom: 20px;
@@ -772,9 +1351,30 @@ body, html {
   height: calc(120px * var(--touch-scale));
   pointer-events: auto;
 }
-.joystick-base { width: 100%; height: 100%; border-radius: 50%; border: 2px dashed rgba(0,240,255,0.35); position: relative; }
-.joystick-knob { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); position: absolute; top:50%;left:50%;transform:translate(-50%,-50%); }
 
+.joystick-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px dashed rgba(0, 240, 255, 0.35);
+  position: relative;
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.joystick-knob {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 12px var(--primary-glow);
+  will-change: transform;
+}
+
+/* Touch Top Row (POV, Mode, Stim) */
 .touch-top-row {
   position: absolute;
   top: 85px;
@@ -784,6 +1384,7 @@ body, html {
   pointer-events: auto;
 }
 
+/* Touch Action Cluster (Bottom-Right) */
 .touch-action-cluster {
   position: absolute;
   bottom: 20px;
@@ -794,34 +1395,84 @@ body, html {
   gap: 8px;
   pointer-events: auto;
 }
-.touch-row-top, .touch-row-mid { display: flex; gap: 8px; }
 
-.btn-touch, .btn-touch-sm, .btn-touch-pill {
+.touch-row-top,
+.touch-row-mid {
+  display: flex;
+  gap: 8px;
+}
+
+/* Touch Button Base Styles */
+.btn-touch,
+.btn-touch-sm,
+.btn-touch-pill {
   border-radius: 50%;
-  background: rgba(6,14,26,0.85);
+  background: rgba(6, 14, 26, 0.85);
   border: 2px solid var(--primary);
   color: var(--primary);
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  -webkit-tap-highlight-color: transparent;
 }
-.btn-touch { width: calc(54px * var(--touch-scale)); height: calc(54px * var(--touch-scale)); font-size: 10px; font-weight: bold; }
-.btn-touch-sm { width: calc(40px * var(--touch-scale)); height: calc(40px * var(--touch-scale)); font-size: 9px; }
-.btn-touch-pill { padding: 6px 12px; border-radius: 12px; font-size: 10px; font-weight: bold; }
-.btn-touch-heal { border-color: var(--success); color: var(--success); }
-.fire-action-btn { background: rgba(255,0,85,0.7); border-color: var(--danger); color: #fff; width: calc(68px * var(--touch-scale)); height: calc(68px * var(--touch-scale)); font-size: 12px; }
 
-/* --- Modals & Settings Dialog --- */
+.btn-touch {
+  width: calc(54px * var(--touch-scale));
+  height: calc(54px * var(--touch-scale));
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.btn-touch-sm {
+  width: calc(44px * var(--touch-scale));
+  height: calc(44px * var(--touch-scale));
+  font-size: 9px;
+}
+
+.btn-touch-pill {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.btn-touch-heal {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.fire-action-btn {
+  background: rgba(255, 0, 85, 0.7);
+  border-color: var(--danger);
+  color: #fff;
+  width: calc(68px * var(--touch-scale));
+  height: calc(68px * var(--touch-scale));
+  font-size: 12px;
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+}
+
+.fire-action-btn:active {
+  background: rgba(255, 0, 85, 0.95);
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.7);
+}
+
+/* ==========================================================================
+   28. MODAL DIALOGS (Unified System)
+   All modals share modal-screen + modal-dialog structure
+   ========================================================================== */
 .modal-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(8,20,38,0.94) 0%, rgba(3,7,13,0.98) 100%);
+  background: radial-gradient(circle, rgba(8, 20, 38, 0.94) 0%, rgba(3, 7, 13, 0.98) 100%);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 50;
   display: flex;
   justify-content: center;
@@ -839,10 +1490,12 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .hero-brand {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: clamp(26px, 4vw, 42px);
   color: #fff;
   text-shadow: 0 0 15px var(--primary);
@@ -856,12 +1509,16 @@ body, html {
   margin-bottom: 16px;
 }
 
-/* Difficulty Buttons */
+/* ==========================================================================
+   29. START MENU — DIFFICULTY SELECTOR & CONTROLS GUIDE
+   ========================================================================== */
 .form-section-title {
   font-size: 10px;
   color: var(--primary);
   letter-spacing: 2px;
   margin-bottom: 6px;
+  width: 100%;
+  text-align: center;
 }
 
 .difficulty-toggle-group {
@@ -877,10 +1534,12 @@ body, html {
   border: 1px solid rgba(0, 240, 255, 0.3);
   color: #92b8cb;
   padding: 8px 4px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 10px;
   font-weight: bold;
   cursor: pointer;
+  min-height: var(--min-touch);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .diff-btn.active {
@@ -893,7 +1552,11 @@ body, html {
   color: #fff;
 }
 
-/* Controls Guide Grid */
+.diff-btn:hover:not(.active) {
+  background: rgba(0, 240, 255, 0.15);
+}
+
+/* Controls Guide */
 .controls-guide-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -909,10 +1572,11 @@ body, html {
 }
 
 .guide-header {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 11px;
   color: var(--primary);
   margin-bottom: 8px;
+  letter-spacing: 1px;
 }
 
 .guide-row {
@@ -929,25 +1593,12 @@ body, html {
   border-radius: 2px;
   color: #fff;
   font-weight: bold;
+  font-size: 10px;
 }
 
-/* Buttons */
-.btn-cyber {
-  padding: 12px 28px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 13px;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-  letter-spacing: 2px;
-}
-
-.btn-primary-glow { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary-glow); }
-.btn-secondary-ghost { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-.btn-danger { background: var(--danger); color: #fff; box-shadow: 0 0 15px var(--danger-glow); }
-.modal-cta-row { display: flex; gap: 10px; }
-
-/* Settings Modal Specifics */
+/* ==========================================================================
+   30. SETTINGS MODAL — TABS, FORMS, SLIDERS, TOGGLES
+   ========================================================================== */
 .settings-dialog {
   max-width: 620px;
   align-items: stretch;
@@ -963,9 +1614,10 @@ body, html {
 }
 
 .settings-header h2 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 16px;
   color: var(--primary);
+  letter-spacing: 1px;
 }
 
 .modal-close-btn {
@@ -974,8 +1626,19 @@ body, html {
   color: #aaa;
   font-size: 22px;
   cursor: pointer;
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
 }
 
+.modal-close-btn:hover {
+  color: var(--danger);
+}
+
+/* Tab Navigation */
 .settings-tabs-nav {
   display: flex;
   gap: 4px;
@@ -990,15 +1653,21 @@ body, html {
   border: 1px solid rgba(0, 240, 255, 0.2);
   color: #8baebd;
   padding: 6px 12px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--cyber-font);
   font-size: 10px;
   font-weight: bold;
   cursor: pointer;
+  min-height: 36px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .tab-btn.active {
   background: var(--primary);
   color: #000;
+}
+
+.tab-btn:hover:not(.active) {
+  background: rgba(0, 240, 255, 0.15);
 }
 
 /* Tab Pages */
@@ -1013,6 +1682,7 @@ body, html {
   display: flex;
 }
 
+/* Form Rows */
 .form-row {
   display: flex;
   flex-direction: column;
@@ -1031,17 +1701,32 @@ body, html {
   align-items: center;
 }
 
-.form-label { font-size: 11px; color: #cbdbe3; }
-.form-val-bubble { font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--primary); font-weight: bold; }
+.form-label {
+  font-size: 11px;
+  color: #cbdbe3;
+}
+
+.form-val-bubble {
+  font-family: var(--cyber-font);
+  font-size: 11px;
+  color: var(--primary);
+  font-weight: bold;
+}
 
 .form-select {
   background: rgba(3, 8, 16, 0.9);
   border: 1px solid rgba(0, 240, 255, 0.35);
   color: #fff;
   padding: 6px 10px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--mono-font);
   font-size: 12px;
   outline: none;
+  min-height: 36px;
+}
+
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--primary-dim);
 }
 
 .form-slider {
@@ -1049,12 +1734,36 @@ body, html {
   height: 5px;
   background: rgba(0, 240, 255, 0.2);
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 3px;
+}
+
+.form-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+.form-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px var(--primary-glow);
 }
 
 .form-checkbox {
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
+  cursor: pointer;
 }
 
 .settings-footer-row {
@@ -1066,7 +1775,9 @@ body, html {
   padding-top: 12px;
 }
 
-/* Pause Dialog */
+/* ==========================================================================
+   31. PAUSE DIALOG
+   ========================================================================== */
 .pause-menu-actions {
   display: flex;
   flex-direction: column;
@@ -1076,7 +1787,9 @@ body, html {
   margin-top: 10px;
 }
 
-/* Debrief Stats Card */
+/* ==========================================================================
+   32. DEBRIEF / STATS CARD (Game Over & Level Clear)
+   ========================================================================== */
 .stats-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1089,21 +1802,461 @@ body, html {
   padding: 16px;
 }
 
-.stat-col { display: flex; flex-direction: column; }
-.stat-lbl { font-size: 10px; color: #7997a6; text-transform: uppercase; }
-.stat-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: bold; color: #fff; }
-.stat-val.highlight { color: var(--secondary); text-shadow: 0 0 8px var(--secondary-glow); }
+.stat-col {
+  display: flex;
+  flex-direction: column;
+}
 
-/* --- General Utilities --- */
+.stat-lbl {
+  font-size: 10px;
+  color: #7997a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-val {
+  font-family: var(--cyber-font);
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.stat-val.highlight {
+  color: var(--secondary);
+  text-shadow: 0 0 8px var(--secondary-glow);
+}
+
+/* ==========================================================================
+   33. ENEMY ARCHETYPE FLOATING NAMEPLATES (World-Space CSS Hooks)
+   Applied via JS when projecting to screen
+   ========================================================================== */
+
+/* Light / Swarmer: Minimalist diamond marker */
+.nameplate-swarmer {
+  border: 1px solid #ffb700;
+  background: rgba(255, 183, 0, 0.1);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* Heavy / Mech: Multi-segmented health bar with hazard stripe */
+.nameplate-heavy .health-segment {
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.nameplate-heavy {
+  border: 2px solid #ff0055;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 0, 85, 0.08),
+    rgba(255, 0, 85, 0.08) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+/* Stealth / Phantom: Glitch/intermittent opacity */
+.nameplate-stealth {
+  border: 1px solid #ff00cc;
+  background: rgba(255, 0, 204, 0.1);
+  animation: stealth-glitch 2s infinite;
+}
+
+@keyframes stealth-glitch {
+  0%, 45%, 55%, 100% { opacity: 0.85; }
+  47%, 53% { opacity: 0.2; }
+  50% { opacity: 0; transform: translateX(2px); }
+}
+
+/* Boss: Distinct crest badge */
+.nameplate-boss {
+  border: 2px solid #ff0077;
+  background: rgba(255, 0, 119, 0.15);
+  box-shadow: 0 0 12px rgba(255, 0, 119, 0.4);
+}
+
+/* ==========================================================================
+   34. MAP THEME TOKEN CLASSES
+   Applied to body or HUD root to cascade theme-specific visual tokens.
+   ThemeManager sets CSS vars; these classes provide additional overrides.
+   ========================================================================== */
+
+/* Neon Metropolis (Sector 01) */
+.theme-neon-metropolis {
+  --primary: #00f0ff;
+  --primary-glow: rgba(0, 240, 255, 0.6);
+  --panel-bg: rgba(6, 14, 26, 0.88);
+  --panel-border: 1px solid rgba(0, 240, 255, 0.35);
+}
+
+/* Industrial Wasteland / Reactor Sub-Core (Sector 02) */
+.theme-industrial-wasteland {
+  --primary: #ff9900;
+  --primary-glow: rgba(255, 153, 0, 0.6);
+  --panel-bg: rgba(20, 12, 4, 0.90);
+  --panel-border: 1px solid rgba(255, 153, 0, 0.45);
+}
+
+/* Orbital Lab / Deep Void (Sector 03) */
+.theme-orbital-void {
+  --primary: #66ccff;
+  --primary-glow: rgba(102, 204, 255, 0.6);
+  --panel-bg: rgba(5, 12, 24, 0.88);
+  --panel-border: 1px solid rgba(102, 204, 255, 0.4);
+}
+
+/* Apex Quantum Core (Sector 04) */
+.theme-quantum-core {
+  --primary: #ff0077;
+  --primary-glow: rgba(255, 0, 119, 0.65);
+  --panel-bg: rgba(18, 4, 22, 0.92);
+  --panel-border: 1px solid rgba(255, 0, 119, 0.45);
+}
+
+/* Glassmorphism blur backdrop for Orbital / Deep Void theme */
+.theme-orbital-void .sci-box,
+.theme-orbital-void .modal-dialog {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ==========================================================================
+   35. GENERAL UTILITIES
+   ========================================================================== */
 .hidden {
   display: none !important;
 }
 
-/* --- Responsive Layout --- */
+/* ==========================================================================
+   36. RESPONSIVE LAYOUT — DESKTOP
+   ========================================================================== */
+@media (min-width: 861px) {
+  /* Hide touch controls on desktop */
+  #mobile-controls {
+    display: none !important;
+  }
+}
+
+/* Ultra-wide (21:9) adjustments */
+@media (min-aspect-ratio: 21/9) {
+  .hud-anchor-top-left {
+    left: calc(var(--safe-margin) + 30px);
+  }
+  .hud-anchor-top-right {
+    right: calc(var(--safe-margin) + 30px);
+  }
+  .hud-anchor-bottom-left {
+    left: calc(var(--safe-margin) + 30px);
+  }
+  .hud-anchor-bottom-right {
+    right: calc(var(--safe-margin) + 30px);
+  }
+}
+
+/* ==========================================================================
+   37. RESPONSIVE LAYOUT — TABLET (max-width: 860px)
+   ========================================================================== */
+@media (max-width: 860px) {
+  .hud-anchor-top-left {
+    transform: scale(0.85);
+    transform-origin: top left;
+  }
+
+  .hud-anchor-top-right {
+    transform: scale(0.85);
+    transform-origin: top right;
+  }
+
+  .hud-anchor-bottom-left {
+    transform: scale(0.85);
+    transform-origin: bottom left;
+    bottom: 120px;
+    left: 10px;
+    width: 260px;
+  }
+
+  .hud-anchor-bottom-right {
+    transform: scale(0.85);
+    transform-origin: bottom right;
+    bottom: 120px;
+    right: 10px;
+  }
+
+  .pov-switcher-widget {
+    padding: 8px 12px;
+  }
+
+  .radar-frame {
+    width: 88px;
+    height: 88px;
+  }
+}
+
+/* ==========================================================================
+   38. RESPONSIVE LAYOUT — MOBILE (max-width: 768px)
+   ========================================================================== */
 @media (max-width: 768px) {
-  .controls-guide-grid { grid-template-columns: 1fr; }
-  .difficulty-toggle-group { flex-wrap: wrap; }
-  .difficulty-toggle-group .diff-btn { flex: 1 1 45%; }
-  .radar-container { width: 80px; height: 80px; }
-  .bottom-left { width: 200px; }
+  .controls-guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .difficulty-toggle-group {
+    flex-wrap: wrap;
+  }
+
+  .difficulty-toggle-group .diff-btn {
+    flex: 1 1 45%;
+  }
+
+  .radar-frame {
+    width: 80px;
+    height: 80px;
+  }
+
+  .radar-container {
+    width: 80px;
+    height: 80px;
+  }
+
+  .hud-anchor-bottom-left {
+    width: 220px;
+  }
+
+  .stats-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .modal-dialog {
+    padding: 16px 18px;
+    width: 95%;
+  }
+
+  .hero-brand {
+    font-size: clamp(22px, 6vw, 32px);
+    letter-spacing: 2px;
+  }
+
+  .hero-tagline {
+    font-size: 10px;
+  }
+
+  .settings-tabs-nav {
+    gap: 3px;
+  }
+
+  .tab-btn {
+    font-size: 9px;
+    padding: 5px 8px;
+  }
+
+  .ammo-active-count {
+    font-size: 28px;
+  }
+
+  .score-value {
+    font-size: 18px;
+  }
+
+  #wave-banner {
+    font-size: 18px;
+    padding: 6px 20px;
+    letter-spacing: 2px;
+  }
+}
+
+/* ==========================================================================
+   39. RESPONSIVE LAYOUT — SMALL MOBILE (max-width: 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .hud-anchor-top-left {
+    transform: scale(0.75);
+    max-width: 240px;
+  }
+
+  .hud-anchor-top-right {
+    transform: scale(0.75);
+  }
+
+  .hud-anchor-bottom-left {
+    transform: scale(0.75);
+    bottom: 130px;
+    width: 200px;
+  }
+
+  .hud-anchor-bottom-right {
+    transform: scale(0.75);
+    bottom: 130px;
+  }
+
+  .radar-frame {
+    width: 64px;
+    height: 64px;
+  }
+
+  .pov-switcher-widget {
+    font-size: 9px;
+    padding: 5px 8px;
+  }
+
+  .pov-icon-svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .hud-icon-btn {
+    padding: 4px 6px;
+  }
+
+  .touch-zone-left {
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .touch-action-cluster {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .touch-top-row {
+    top: 70px;
+    left: 10px;
+    gap: 5px;
+  }
+
+  .btn-touch-pill {
+    font-size: 9px;
+    padding: 5px 8px;
+  }
+
+  .canonical-btn {
+    padding: 10px 18px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+}
+
+/* ==========================================================================
+   40. SAFE AREA INSETS (Notched devices — iPhone X+, etc.)
+   ========================================================================== */
+@supports (padding: env(safe-area-inset-top)) {
+  .hud-anchor-top-left {
+    top: calc(var(--safe-margin-v) + env(safe-area-inset-top));
+    left: calc(var(--safe-margin) + env(safe-area-inset-left));
+  }
+
+  .hud-anchor-top-right {
+    top: calc(var(--safe-margin-v) + env(safe-area-inset-top));
+    right: calc(var(--safe-margin) + env(safe-area-inset-right));
+  }
+
+  .hud-anchor-bottom-left {
+    bottom: calc(var(--safe-margin-v) + env(safe-area-inset-bottom));
+    left: calc(var(--safe-margin) + env(safe-area-inset-left));
+  }
+
+  .hud-anchor-bottom-right {
+    bottom: calc(var(--safe-margin-v) + env(safe-area-inset-bottom));
+    right: calc(var(--safe-margin) + env(safe-area-inset-right));
+  }
+
+  .touch-zone-left {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: calc(20px + env(safe-area-inset-left));
+  }
+
+  .touch-action-cluster {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: calc(20px + env(safe-area-inset-right));
+  }
+}
+
+/* ==========================================================================
+   41. LANDSCAPE ORIENTATION MOBILE
+   ========================================================================== */
+@media (max-height: 420px) and (orientation: landscape) {
+  .hud-anchor-top-left {
+    transform: scale(0.7);
+    top: 8px;
+    left: 8px;
+  }
+
+  .hud-anchor-top-right {
+    transform: scale(0.7);
+    top: 8px;
+    right: 8px;
+  }
+
+  .hud-anchor-bottom-left {
+    transform: scale(0.7);
+    bottom: 90px;
+    left: 8px;
+  }
+
+  .hud-anchor-bottom-right {
+    transform: scale(0.7);
+    bottom: 90px;
+    right: 8px;
+  }
+
+  .hud-anchor-top-center {
+    top: 6px;
+  }
+
+  #wave-banner {
+    font-size: 16px;
+    padding: 4px 16px;
+  }
+
+  #boss-hud-container {
+    max-width: 360px;
+    padding: 4px 8px;
+  }
+}
+
+/* ==========================================================================
+   42. PRINT / REDUCED MOTION ACCESSIBILITY
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  #webgl-canvas,
+  .scanlines,
+  #damage-overlay,
+  #powerup-overlay,
+  #heal-overlay,
+  #damage-numbers-layer,
+  #mobile-controls,
+  #loading-screen {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   43. GPU ACCELERATION HINTS FOR PERFORMANCE
+   ========================================================================== */
+.gauge-fill,
+.gauge-ghost,
+.boss-gauge-fill,
+.boss-gauge-ghost,
+.reload-meter-fill,
+.combo-fill,
+.joystick-knob,
+.loading-ring-outer,
+.loading-ring-inner,
+.floating-dmg {
+  will-change: transform, width, opacity;
+}
+
+#reticle-container,
+#hitmarker,
+.reticle-aim-assist {
+  will-change: transform, opacity;
 }
